@@ -1,0 +1,84 @@
+/* yomu! overlay styles */
+
+/* 1. Subtle Floating Widget */
+#yomu-widget {
+    position: fixed;
+    bottom: 24px;
+    right: 24px;
+    width: 48px;
+    height: 48px;
+    background: rgba(255, 255, 255, 0.9);
+    border: 1px solid #ddd;
+    border-radius: 24px;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+    z-index: 99998;
+    display: none; /* hidden by default until target text detected */
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    font-family: sans-serif;
+    font-weight: bold;
+    color: #333;
+    transition: all 0.3s ease;
+}
+
+/* 2. Progress Bar State */
+#yomu-widget.yomu-progress {
+    width: 120px;
+    border-radius: 8px;
+    justify-content: flex-start;
+    padding: 0 12px;
+    background: linear-gradient(90deg, #f0f0f0 25%, #e0e0e0 50%, #f0f0f0 75%);
+    background-size: 200% 100%;
+    animation: loading 1.5s infinite;
+    cursor: default;
+}
+
+@keyframes loading {
+    0% { background-position: 200% 0; }
+    100% { background-position: -200% 0; }
+}
+
+/* 3. Ready State - Subtle color change */
+#yomu-widget.yomu-ready {
+    width: 48px;
+    border-radius: 24px;
+    background: rgba(230, 247, 255, 0.9); /* Subtle blue tint */
+    border-color: #91d5ff;
+    box-shadow: 0 4px 12px rgba(24, 144, 255, 0.2);
+    cursor: pointer;
+}
+
+/* 4. Active State (Ruby visible) */
+#yomu-widget.yomu-active {
+    background: rgba(24, 144, 255, 0.9);
+    color: white;
+    border-color: #1890ff;
+}
+
+/* Ripple / Shockwave Animation */
+.yomu-ripple {
+    position: absolute;
+    border-radius: 50%;
+    border: 2px dashed rgba(24, 144, 255, 0.6);
+    transform: scale(0.8);
+    opacity: 0.4;
+    pointer-events: none;
+    z-index: 99999;
+    animation: ripple-anim 0.5s ease-out forwards;
+}
+
+@keyframes ripple-anim {
+    0%   { transform: scale(0.8); opacity: 0.4; }
+    100% { transform: scale(3);   opacity: 0; }
+}
+
+/* Ruby Tag Fading */
+.yomu-annotated rt {
+    opacity: 0;
+    transition: opacity 0.25s ease-in-out;
+}
+
+.yomu-active-annotations .yomu-annotated rt {
+    opacity: 1;
+}

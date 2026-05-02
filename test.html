@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>yōmu! Test Page</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            line-height: 1.6;
+            margin: 40px auto;
+            max-width: 800px;
+            padding: 20px;
+            color: #333;
+        }
+        .container {
+            background: #f9f9f9;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>yōmu! Test Page</h1>
+        <p>This is a standard English paragraph. The extension should scan the entire page, but this paragraph won't trigger the processing on its own.</p>
+        
+        <p>However, below is some Japanese text containing Kanji. Since the extension is dynamic, it should detect this, automatically trigger the background process, and you should see the widget in the corner.</p>
+        
+        <blockquote>
+            こんにちは、世界！これはテストです。漢字 があります。
+        </blockquote>
+
+        <p>Here is some text that already has a ruby tag, which the extension should ignore:</p>
+
+        <p><ruby>明日<rt>あした</rt></ruby>は晴れです。</p>
+
+        <p>Once the extension processes the page, the widget should change color slightly (ready state). Click it, and you'll see the mock annotation applied to the text above (it will wrap the first node containing Kanji with a mock 'よむ' furigana for demonstration purposes).</p>
+    </div>
+</body>
+</html>
