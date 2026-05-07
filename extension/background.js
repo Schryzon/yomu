@@ -17,15 +17,15 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
                 target_lang: 'auto'
             })
         })
-        .then(response => response.json())
-        .then(data => {
-            console.log("yōmu! backend responded:", data);
-            sendResponse({ status: 'success', data: data });
-        })
-        .catch(error => {
-            console.error("yōmu! backend error:", error);
-            sendResponse({ status: 'error', message: error.message });
-        });
+            .then(response => response.json())
+            .then(data => {
+                console.log("yōmu! backend responded:", data);
+                sendResponse({ status: 'success', data: data });
+            })
+            .catch(error => {
+                console.error("yōmu! backend error:", error);
+                sendResponse({ status: 'error', message: error.message });
+            });
 
         return true; // Keep message channel open for async response
     }
