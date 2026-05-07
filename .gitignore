@@ -1,2 +1,23 @@
 # Chat logs
 chat-logs.txt
+
+# Virtual environments
+venv/
+env/
+*.env
+deploy.*
+
+# IDE
+.idea/
+*.swp
+*~
+
+# Python cache
+__pycache__/
+*.py[cod]
+
+# OS files
+.DS_Store
+
+# Logs
+*.log

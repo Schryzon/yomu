@@ -38,36 +38,45 @@ function scanPage() {
     }
 
     if (foundTargetText) {
-        startProcessing(textNodesToProcess);
+        // For the hackathon, we'll process nodes in chunks to avoid overloading the API
+        // but for now, we'll just demonstrate the first few meaningful ones
+        startProcessing(textNodesToProcess.slice(0, 5)); 
     }
 }
 
-// 2. Auto-Process
+// 2. Process with Backend
 function startProcessing(nodes) {
     widgetState = 'progress';
     widget.className = 'yomu-progress';
     widget.innerText = ''; // clear text for progress bar
     widget.style.display = 'flex';
 
-    // Mock processing - replacing one node to show behavior
-    // In reality, we'd send the text chunks to the backend
-    console.log("yōmu! found target text. Processing in background...");
+    console.log(`yōmu! found ${nodes.length} target nodes. Processing...`);
     
-    chrome.runtime.sendMessage({ action: 'process_text', payload: { nodeCount: nodes.length } }, (response) => {
-        if (response && response.status === 'success') {
-            // Mock backend response handling: manually annotate one node for demonstration
-            if (nodes.length > 0) {
-                // Just for skeleton: wrap a random node with a mock ruby tag to test CSS
-                const testNode = nodes[0];
-                if (testNode.parentNode) {
+    // Process each node (in a real app, we'd batch these better)
+    let processedCount = 0;
+    nodes.forEach(node => {
+        const originalText = node.nodeValue;
+        
+        chrome.runtime.sendMessage({ 
+            action: 'process_text', 
+            payload: { text: originalText } 
+        }, (response) => {
+            processedCount++;
+            
+            if (response && response.status === 'success' && response.data.annotated_html) {
+                if (node.parentNode) {
                     const span = document.createElement('span');
                     span.className = 'yomu-annotated';
-                    span.innerHTML = `<ruby>${testNode.nodeValue}<rt>よむ</rt></ruby>`;
-                    testNode.parentNode.replaceChild(span, testNode);
+                    span.innerHTML = response.data.annotated_html;
+                    node.parentNode.replaceChild(span, node);
                 }
             }
-            setReadyState();
-        }
+
+            if (processedCount === nodes.length) {
+                setReadyState();
+            }
+        });
     });
 }
 
@@ -111,6 +120,5 @@ widget.addEventListener('click', (e) => {
 
 // Run detection on load
 window.addEventListener('load', () => {
-    // Small delay to allow dynamic content (like React/Vue) to render
     setTimeout(scanPage, 1000);
 });

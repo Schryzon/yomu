@@ -1,8 +1,12 @@
 from fastapi import FastAPI, HTTPException
 from pydantic import BaseModel
-from ai_service import get_mock_annotation
+from ai_service import get_real_annotation, setup_ai
 
 app = FastAPI(title="yōmu! API")
+
+@app.on_event("startup")
+async def startup_event():
+    setup_ai()
 
 class AnnotationRequest(BaseModel):
     text: str
@@ -19,10 +23,10 @@ def health_check():
 async def annotate_text(request: AnnotationRequest):
     """
     Endpoint to receive raw text and return text annotated with HTML ruby tags.
-    Currently uses a mock service.
+    Uses Google Gemini 1.5 Flash.
     """
     try:
-        annotated = get_mock_annotation(request.text)
+        annotated = get_real_annotation(request.text)
         return AnnotationResponse(annotated_html=annotated)
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
