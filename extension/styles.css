@@ -9,10 +9,11 @@
     min-width: 48px;
     padding: 0 16px;
     height: 48px;
-    background: rgba(255, 255, 255, 0.9);
-    border: 1px solid #ddd;
+    background: rgba(15, 23, 42, 0.95);
+    border: 1px solid rgba(255, 255, 255, 0.1);
     border-radius: 24px;
-    box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+
     z-index: 99998;
     display: none; /* hidden by default until target text detected */
     align-items: center;
@@ -20,7 +21,8 @@
     cursor: pointer;
     font-family: sans-serif;
     font-weight: bold;
-    color: #333;
+    color: #f8fafc;
+
     transition: all 0.3s ease;
 }
 
@@ -41,18 +43,43 @@
 
 /* 3. Ready State - Subtle color change */
 #yomu-widget.yomu-ready {
-    background: rgba(230, 247, 255, 0.9); /* Subtle blue tint */
-    border-color: #91d5ff;
-    box-shadow: 0 4px 12px rgba(24, 144, 255, 0.2);
+    background: rgba(129, 140, 248, 0.15);
+    border-color: rgba(129, 140, 248, 0.4);
+    box-shadow: 0 4px 12px rgba(129, 140, 248, 0.2);
     cursor: pointer;
 }
 
+
 /* 4. Active State (Ruby visible) */
 #yomu-widget.yomu-active {
-    background: rgba(24, 144, 255, 0.9);
-    color: white;
-    border-color: #1890ff;
+    background: #818cf8;
+    color: #020617;
+    border-color: #6366f1;
 }
+
+
+.yomu-active-annotations .yomu-annotated {
+    background: rgba(96, 165, 250, 0.15) !important;
+    border-radius: 4px;
+    padding: 2px 0;
+    transition: background 0.3s ease;
+    cursor: pointer;
+}
+
+.yomu-active-annotations .yomu-annotated:hover {
+    background: rgba(96, 165, 250, 0.3) !important;
+}
+
+.yomu-annotated ruby {
+    animation: yomu-fade-in 0.5s ease;
+}
+
+@keyframes yomu-fade-in {
+    from { opacity: 0; transform: translateY(2px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+
 
 /* Ripple / Shockwave Animation */
 .yomu-ripple {
@@ -60,11 +87,35 @@
     width: 48px;
     height: 48px;
     border-radius: 50%;
-    background: radial-gradient(circle, rgba(24, 144, 255, 0.05) 0%, rgba(24, 144, 255, 0.2) 80%, transparent 100%);
-    border: 2px solid rgba(24, 144, 255, 0.6);
+    background: radial-gradient(circle, rgba(45, 212, 191, 0.1) 0%, rgba(45, 212, 191, 0.4) 80%, transparent 100%);
+    border: 2px solid rgba(45, 212, 191, 0.8);
+
     pointer-events: none;
     z-index: 99997; /* Behind the widget */
     animation: ripple-anim 0.8s cubic-bezier(0.165, 0.84, 0.44, 1) forwards;
+}
+
+/* Tooltip for Deep Analysis */
+#yomu-tooltip {
+    position: absolute;
+    z-index: 9999999;
+    width: 280px;
+    background: rgba(15, 23, 42, 0.95);
+    backdrop-filter: blur(12px);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 12px;
+    padding: 15px;
+    color: white;
+    font-family: 'Outfit', system-ui, -apple-system, sans-serif;
+    font-size: 0.9rem;
+    line-height: 1.5;
+    box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.5);
+    animation: yomu-tooltip-in 0.2s ease-out;
+}
+
+@keyframes yomu-tooltip-in {
+    from { opacity: 0; transform: translateY(10px); }
+    to { opacity: 1; transform: translateY(0); }
 }
 
 @keyframes ripple-anim {
@@ -80,8 +131,9 @@
 .yomu-annotated rt {
     opacity: 0;
     font-size: 0.6em;
-    color: #1890ff; /* yomu blue */
+    color: #2dd4bf; /* yomu mint */
     transform: translateY(2px);
+
     transition: opacity 0.3s ease, transform 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
 }
 

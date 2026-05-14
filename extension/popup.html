@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            width: 300px;
+            padding: 20px;
+            background: #0f172a;
+            color: white;
+            font-family: 'Outfit', sans-serif;
+            margin: 0;
+        }
+        .header {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+        .logo {
+            font-weight: 800;
+            font-size: 1.5rem;
+            color: #60a5fa;
+        }
+        .status {
+            padding: 10px;
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 12px;
+            font-size: 0.9rem;
+            margin-bottom: 15px;
+        }
+        .section-title {
+            font-size: 0.8rem;
+            text-transform: uppercase;
+            opacity: 0.5;
+            margin-bottom: 10px;
+            letter-spacing: 1px;
+        }
+        .control-group {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+        .btn {
+            background: #60a5fa;
+            color: #0f172a;
+            border: none;
+            padding: 10px;
+            border-radius: 8px;
+            font-weight: 700;
+            cursor: pointer;
+            transition: all 0.2s;
+            text-align: center;
+        }
+        .btn:hover {
+            transform: translateY(-2px);
+            background: #93c5fd;
+        }
+        .footer {
+            margin-top: 20px;
+            font-size: 0.7rem;
+            opacity: 0.4;
+            text-align: center;
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <div class="logo">ヨォム yōmu!</div>
+    </div>
+    
+    <div class="status" id="status-text">
+        Ready to enhance your reading.
+    </div>
+
+    <div class="section-title">Actions</div>
+    <div class="control-group">
+        <button class="btn" id="scan-now">Re-scan Page</button>
+        <button class="btn" style="background: rgba(255,255,255,0.1); color: white;" id="open-demo">Open Web Demo</button>
+    </div>
+
+    <div class="footer">
+        yōmu! v1.0 • Built with Gemini 2.0 Flash
+
+    </div>
+
+    <script src="popup.js"></script>
+</body>
+</html>

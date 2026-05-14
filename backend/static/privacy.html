@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Privacy Policy — yōmu!</title>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="/static/style.css">
+    <style>
+        .content-card {
+            background: var(--glass);
+            border: 1px solid var(--border);
+            padding: 3rem;
+            border-radius: var(--radius-lg);
+            max-width: 800px;
+            margin: 4rem auto;
+            line-height: 1.8;
+            color: var(--text-muted);
+        }
+        h1, h2 { color: var(--text); margin-top: 2rem; }
+    </style>
+</head>
+<body>
+    <div class="bg-blobs">
+        <div class="blob blob-1"></div>
+        <div class="blob blob-2"></div>
+    </div>
+    
+    <header>
+        <div class="logo" onclick="location.href='/'" style="cursor:pointer">yōmu! (ヨォム)</div>
+    </header>
+
+    <main>
+        <div class="content-card">
+            <h1>Privacy Policy</h1>
+            <p>Last Updated: May 14, 2026</p>
+            
+            <h2>1. Data We Do Not Collect</h2>
+            <p>yōmu! does not collect or store any personal information. We do not require account registration, and we do not track your browsing history.</p>
+
+            <h2>2. Text Processing</h2>
+            <p>When you use the extension or web demo, the text you select is sent to our backend for processing. 
+               <ul>
+                   <li><strong>Local Processing</strong>: Japanese and Chinese annotations are handled by local scripts on our server and are never stored.</li>
+                   <li><strong>AI Processing</strong>: If you use the "Deep Analysis" feature, text is sent to the Google Gemini API. This is subject to Google's Privacy Policy.</li>
+               </ul>
+            </p>
+
+            <h2>3. Third-Party Services</h2>
+            <p>We use Google Cloud Run to host our Service and Google Gemini for AI analysis. These services may collect diagnostic data as part of their standard operation.</p>
+
+            <h2>4. Changes</h2>
+            <p>We may update this policy from time to time. The latest version will always be available on this page.</p>
+        </div>
+    </main>
+
+    <footer>
+        <p>&copy; 2024 yōmu! project. <a href="/" style="color: var(--primary); text-decoration: none;">Back to Home</a></p>
+    </footer>
+</body>
+</html>

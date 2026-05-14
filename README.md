@@ -1,79 +1,120 @@
-# yōmu! 📖✨
+# yōmu! (ヨォム)
 
-> **A real-time reading layer for the web.**
 
-**yōmu!** is a project built for the **#JuaraVibeCoding** hackathon (Competition starts May 6, 2026). It is designed to solve a painful, daily problem for language learners: trying to read foreign scripts (like Japanese Kanji or Chinese Hanzi) on real-world sites (Instagram, YouTube, random articles) where pronunciation guides aren't provided.
 
-Instead of being a clunky dictionary or translator, yōmu! acts as a **cinematic, seamless UI augmentation layer**. It dynamically detects target languages, auto-processes them in the background, and allows the user to elegantly toggle pronunciation overlays (like `<ruby>` furigana or pinyin) via a subtle floating widget.
+[![License: AGPL v3](https://img.shields.io/badge/License-AGPL%20v3-blue.svg)](https://opensource.org/licenses/AGPL-3.0)
+[![Python 3.12](https://img.shields.io/badge/Python-3.12-blue.svg)](https://www.python.org/downloads/release/python-3120/)
+[![FastAPI](https://img.shields.io/badge/FastAPI-0.104.1-009688.svg)](https://fastapi.tiangolo.com/)
+[![Cloud Run](https://img.shields.io/badge/Cloud%20Run-Deployed-blue.svg)](https://cloud.google.com/run)
 
----
+**Reading foreign scripts, made effortless.**
 
-## 🧠 Project Context (For Future AI Agents)
+yōmu! is a real-time linguistic augmentation layer for the web. It dynamically injects pronunciation guides (Furigana, Pinyin, or Transliteration) into any website, allowing you to read Japanese, Chinese, and Arabic without breaking your flow.
 
-Hello, future me (Mommy/Xelisa/Selia). If you are reading this, you are continuing work with baby Jay on this hackathon project. Here is the critical context you need to maintain consistency and quality.
+[**Try the Web Demo**](https://yomu-api-447937177163.asia-southeast2.run.app/) | [**Install Extension**](#installation) | [**Contributing**](CONTRIBUTING.md)
 
-### Current Status (as of May 2, 2026)
-We are currently in the **Skeleton Phase**. The hackathon hasn't started yet, so we have built the structural foundation without the actual Google AI Studio API integration.
-- The Chrome Extension frontend is built with dynamic regex detection, DOM manipulation (safely avoiding existing `<ruby>` tags), and the full UI state machine (hidden → progress bar → subtle ready tint → ripple activation).
-- The FastAPI backend is structured and containerized, currently using a mock function to return fake `<ruby>` tags for testing.
 
-### The Architecture
-1. **Frontend: Chrome Extension (Manifest V3)**
-   - Cross-browser compatible (includes `gecko.id` for Firefox).
-   - Injects a subtle floating widget.
-   - Parses the DOM cleanly without breaking React/Vue states.
-2. **Backend: Python FastAPI (Google Cloud Run)**
-   - Python 3.12 environment.
-   - Will serve as the bridge between the extension and Google AI Studio (Gemini).
-
-### Design & Engineering Philosophy
-You must adhere to Jay's brain when writing code here:
-- **Readability > Everything:** Code must be spaced out, consistent, and easy to scan. No visual noise.
-- **System-Level Thinking:** Strict naming conventions.
-- **`snake_case` is king:** For backend/system work, keep it grounded and practical.
-- **Flat Logic:** Avoid deep nesting. Use early returns. Keep branching clear.
-- **Optimistic Error Handling:** Don't overprotect. Let it crash predictably rather than swallowing errors silently.
-- **Performance:** "Reasonable, not obsessive." Maintainability is prioritized over premature optimization.
-- **The UX Loop:** *Input → Feedback → Transformation → Control.* The UI animations (the progress bar, the subtle color shift, the shockwave ripple) are intentional, not gimmicky. Keep the aesthetic premium, clean, and magical.
 
 ---
 
-## 🚀 How to Run Locally
+## Features
 
-### Frontend (Extension)
-**Chrome / Edge:**
-1. Go to `chrome://extensions/`
-2. Enable "Developer mode"
-3. Click "Load unpacked" and select the `extension/` directory.
+
+- **Japanese (Furigana)**: Automatically adds Hiragana reading aids above Kanji using `pykakasi`.
+- **Chinese (Pinyin)**: Injects tonal Pinyin above Hanzi characters via `pypinyin`.
+- **Arabic (Transliteration)**: Provides lightweight Latin transliteration for Arabic script.
+- **Russian (Transliteration)**: Adds phonetic Latin guides above Cyrillic text.
+- **Hindi (Transliteration)**: Provides phonetic guides for Devanagari script.
+
+
+
+- **Smart Detection**: Automatically identifies the language of the page or specific text blocks.
+- **Premium UI**: A glassmorphic, non-intrusive floating widget that provides real-time feedback.
+- **Mobile Ready**: Responsive landing page with PWA support and a strategy for mobile browser extensions.
+- **High Performance**: Powered by a Python FastAPI backend deployed on Google Cloud Run for low latency.
+
+
+---
+
+## How to Use
+
+### 🌐 Web Demo
+1.  Navigate to the [yōmu! Web Demo](https://yomu-api-447937177163.asia-southeast2.run.app/).
+2.  Type or paste text in the input box (Japanese, Chinese, Arabic, Russian, or Hindi).
+3.  The annotated text will appear instantly in the output box.
+
+### 🧩 Browser Extension
+1.  **Activate**: Once installed, navigate to any webpage with foreign script.
+2.  **Detection**: The yōmu! widget will appear in the bottom-right corner when target text is detected.
+3.  **Toggle**: Click the widget to inject pronunciation guides (Furigana, Pinyin, etc.) into the page.
+4.  **Deep Analysis**: Click on any annotated word to open a **Gemini 2.0 Flash** powered tooltip for grammar and meaning breakdown.
+
+### 📱 Mobile (iOS/Android)
+- **Safari (iOS)**: Use our Safari Web Extension to annotate pages directly in your mobile browser.
+- **PWA**: Add the Web Demo to your Home Screen to use it as a standalone reading aid app.
+
+---
+
+## Architecture
+
+
+
+yōmu! is built with a decoupled architecture for maximum flexibility:
+
+1.  **Frontend (Extension)**: A Manifest V3 browser extension that parses the DOM safely, handles UI state, and communicates with the backend.
+2.  **Backend (API)**: A FastAPI service that performs the linguistic heavy lifting (tokenization, transliteration) using specialized local engines.
+3.  **Landing Page**: A modern, mobile-optimized website that serves as both a demo and a distribution hub.
+
+---
+
+## Installation
+
+
+### 1. Browser Extension
+**Chrome / Edge / Brave:**
+1. Clone this repository.
+2. Go to `chrome://extensions/`.
+3. Enable **Developer mode**.
+4. Click **Load unpacked** and select the `extension/` directory.
 
 **Firefox:**
-1. Go to `about:debugging`
-2. Click "This Firefox" -> "Load Temporary Add-on"
-3. Select the `extension/manifest.json` file.
+1. Go to `about:debugging`.
+2. Click **This Firefox** -> **Load Temporary Add-on**.
+3. Select `extension/manifest.json`.
 
-You can test the frontend behavior locally using the `test.html` file located in the root directory.
-
-### Backend (API)
-```bash
+### 2. Backend (Local Development)
+```powershell
 cd backend
+python -m venv venv
+.\venv\Scripts\Activate
 pip install -r requirements.txt
-uvicorn main:app --reload --port 8080
+python -m uvicorn main:app --reload
 ```
-*(Note: Requires Python 3.12)*
 
 ---
 
-## 🎯 Next Steps (Post-May 6)
-- [ ] Implement the actual Google AI Studio (Gemini) calls in `backend/ai_service.py`.
-- [ ] Connect the `content.js` fetch requests to the real FastAPI endpoint instead of using the mock background script.
-- [ ] Deploy the backend to Google Cloud Run using the provided `Dockerfile`.
-- [ ] Handle potential DOM edge cases (e.g., dynamic content loading via infinite scroll).
-- [ ] Record the killer 2-minute demo video for the hackathon submission.
+## Testing
+
+We provide a `test.html` in the root directory to verify the extension's behavior on a controlled set of Japanese and Chinese text samples.
 
 ---
 
-## 🔮 Future Vision
-Beyond static text, yōmu! aims to be a universal perception layer. Hackathon goals also include:
-- **Real-Time Video Translation:** Injecting live `<ruby>` subtitles over YouTube or Instagram Reels.
-- **Live Audio Transcription:** Listening to device audio and providing a live, floating transcription overlay with instant furigana/pinyin. 
-- **Context-Aware Dictionary Hover:** Hovering over the translated text to reveal grammar breakdowns without losing the flow of reading/watching.
+## Contributing
+
+We welcome contributions! Whether it's adding support for new languages, improving the UI, or optimizing the backend, please see our [Contributing Guide](CONTRIBUTING.md) for details on our code of conduct and the process for submitting pull requests.
+
+---
+
+## License
+
+This project is licensed under the **GNU Affero General Public License v3 (AGPL-3.0)**. See the [LICENSE](LICENSE) file for details.
+
+---
+
+## Code of Conduct
+
+We are committed to fostering an open and welcoming environment. Please read our [Code of Conduct](CODE_OF_CONDUCT.md) before participating in the project.
+
+---
+
+Built with ❤️ by Schryzon & contributors for language learners everywhere.

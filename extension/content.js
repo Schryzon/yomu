@@ -4,11 +4,20 @@
 let widgetState = 'hidden'; // hidden, progress, ready, active
 const widget = document.createElement('div');
 widget.id = 'yomu-widget';
-widget.innerText = 'yōmu!';
-document.body.appendChild(widget);
+widget.innerText = 'yōmu! (ヨォム)';
 
-// Regex for Japanese (Kanji/Hiragana/Katakana), Chinese (Hanzi), Arabic
-const TARGET_REGEX = /[\u3040-\u309F\u30A0-\u30FF\u4E00-\u9FAF\u0600-\u06FF]/;
+const tooltip = document.createElement('div');
+tooltip.id = 'yomu-tooltip';
+tooltip.style.display = 'none';
+
+document.body.appendChild(widget);
+document.body.appendChild(tooltip);
+
+
+// Regex for Japanese, Chinese, Arabic, Russian, and Hindi (Devanagari)
+const TARGET_REGEX = /[\u3040-\u309F\u30A0-\u30FF\u4E00-\u9FAF\u0600-\u06FF\u0400-\u04FF\u0900-\u097F]/;
+
+
 
 // Helper to check if node is inside a ruby tag
 function isInsideRuby(node) {
@@ -73,7 +82,8 @@ function scanPage() {
 function startProcessing(nodes) {
     widgetState = 'progress';
     widget.className = 'yomu-progress';
-    widget.innerText = 'yōmu!'; // Keep the text for the pulsating gray state
+    widget.innerText = 'yōmu! (ヨォム)'; // Keep the text for the pulsating gray state
+
     widget.style.display = 'flex';
 
     console.log(`yōmu! found ${nodes.length} target nodes. Batch processing...`);
@@ -98,9 +108,17 @@ function startProcessing(nodes) {
                         const span = document.createElement('span');
                         span.className = 'yomu-annotated';
                         span.innerHTML = annotatedText;
+                        
+                        // Add click listener for Deep Analysis
+                        span.addEventListener('click', (e) => {
+                            e.stopPropagation();
+                            showExplanation(node.nodeValue, span);
+                        });
+
                         if (node.parentNode) {
                             node.parentNode.replaceChild(span, node);
                         }
+
                     }
                 }
             });
@@ -114,7 +132,8 @@ function startProcessing(nodes) {
 function setReadyState() {
     widgetState = 'ready';
     widget.className = 'yomu-ready';
-    widget.innerText = 'yōmu!';
+    widget.innerText = 'yōmu! (ヨォム)';
+
 }
 
 function createRipple(x, y) {
@@ -148,7 +167,59 @@ widget.addEventListener('click', (e) => {
     }
 });
 
-// Run detection on load
-window.addEventListener('load', () => {
-    setTimeout(scanPage, 1000);
+// 4. Deep Analysis (Gemini Integration)
+function showExplanation(text, anchorElement) {
+    const rect = anchorElement.getBoundingClientRect();
+    tooltip.style.left = `${rect.left + window.scrollX}px`;
+    tooltip.style.top = `${rect.bottom + window.scrollY + 10}px`;
+    tooltip.style.display = 'block';
+    tooltip.innerHTML = '<em>Analyzing with Gemini...</em>';
+
+    chrome.runtime.sendMessage({
+        action: 'explain_text',
+        payload: { text: text, context: document.title }
+    }, (response) => {
+        if (response && response.status === 'success') {
+            tooltip.innerHTML = `
+                <div style="font-weight: bold; color: #60a5fa; margin-bottom: 5px;">Deep Analysis</div>
+                <div>${response.data.explanation}</div>
+                <div style="margin-top: 10px; font-size: 0.7rem; opacity: 0.6; text-align: right;">Powered by Gemini 2.0 Flash</div>
+
+            `;
+        } else {
+            tooltip.innerHTML = '<span style="color: #ef4444;">Error generating analysis.</span>';
+        }
+    });
+}
+
+// Close tooltip on outside click
+document.addEventListener('click', (e) => {
+    if (!tooltip.contains(e.target) && !e.target.classList.contains('yomu-annotated')) {
+        tooltip.style.display = 'none';
+    }
 });
+
+
+// 5. Dynamic Content (MutationObserver)
+let scanTimeout;
+const observer = new MutationObserver((mutations) => {
+    // Debounce scanning to avoid performance hits
+    clearTimeout(scanTimeout);
+    scanTimeout = setTimeout(() => {
+        // Only scan if new text nodes might have been added
+        const hasNewContent = mutations.some(m => m.addedNodes.length > 0);
+        if (hasNewContent) {
+            console.log("yōmu! detecting new content...");
+            scanPage();
+        }
+    }, 2000);
+});
+
+// Run detection on load and start observing
+window.addEventListener('load', () => {
+    setTimeout(() => {
+        scanPage();
+        observer.observe(document.body, { childList: true, subtree: true });
+    }, 1000);
+});
+
