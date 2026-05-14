@@ -40,6 +40,8 @@
         <div class="blob blob-1"></div>
         <div class="blob blob-2"></div>
     </div>
+    <div class="ambient-bg" id="ambient-bg"></div>
+
 
     <header>
         <div class="logo">yōmu! (ヨォム)</div>
@@ -251,8 +253,50 @@
             }
         }
 
+        // Ambient Background Logic
+        const ambientContainer = document.getElementById('ambient-bg');
+        const chars = [
+            // Japanese (Hiragana/Katakana)
+            ..."あいうえおかきくけこさしすせそたちつてとなにぬねのはひふへほまみむめもやゆよらりるれろわをん".split(""),
+            // Chinese (Common Hanzi)
+            ..."の一是国在人了有中这大来上个国社工政道前後中左右".split(""),
+            // Arabic
+            ..."ابتثجحخدذرزسشصضطظعغفقكلمنهوي".split(""),
+            // Russian
+            ..."абвгдеёжзийклмнопрстуфхцчшщъыьэюя".split(""),
+            // Hindi
+            ..."अआइईउऊऋएऐओऔकखगघङचछजझञटठडढणतथदधनपफबभमयरलवशषसह".split("")
+        ];
+
+        function createStream() {
+            const stream = document.createElement('div');
+            stream.className = 'ambient-stream';
+            
+            let content = "";
+            for(let i=0; i<30; i++) {
+                content += chars[Math.floor(Math.random() * chars.length)] + "\n";
+            }
+            stream.innerText = content;
+            
+            // Randomize position and animation (Slow drift)
+            const duration = 40 + Math.random() * 40;
+            const delay = -Math.random() * 80;
+            stream.style.setProperty('--duration', `${duration}s`);
+            stream.style.animationDelay = `${delay}s`;
+
+            
+            ambientContainer.appendChild(stream);
+        }
+
+        // Create initial streams
+        const streamCount = Math.floor(window.innerWidth / 50);
+        for(let i=0; i<streamCount; i++) {
+            createStream();
+        }
+
         btn.addEventListener('click', annotate);
         window.addEventListener('DOMContentLoaded', annotate);
     </script>
+
 </body>
 </html>
