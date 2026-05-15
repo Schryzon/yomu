@@ -37,3 +37,4 @@ __pycache__/
 # Logs
 *.log
 test_output.json
+models.txt

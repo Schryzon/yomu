@@ -10,7 +10,7 @@
 
     <!-- Open Graph / Facebook -->
     <meta property="og:type" content="website">
-    <meta property="og:url" content="https://yomu-api-447937177163.asia-southeast2.run.app/">
+    <meta property="og:url" content="https://yomu-447937177163.asia-southeast2.run.app/" />
     <meta property="og:title" content="yōmu! (ヨォム) — Read Languages with Ease">
     <meta property="og:description"
         content="An AI-powered reading companion that injects pronunciation guides into any website. Supports Japanese, Chinese, Arabic, Russian, and Hindi.">
@@ -29,7 +29,7 @@
     <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;600;800;900&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="/static/style.css">
     <link rel="manifest" href="/static/manifest.json">
-    <link rel="canonical" href="https://yomu-api-447937177163.asia-southeast2.run.app/">
+    <link rel="canonical" href="https://yomu-447937177163.asia-southeast2.run.app/" />
     <meta name="theme-color" content="#020617">
     <link rel="apple-touch-icon" href="/static/logo.png">
 
@@ -48,7 +48,10 @@
 
         <nav>
             <a href="https://github.com/Schryzon/yomu" class="btn"
-                style="background: var(--glass); border: 1px solid var(--border);">GitHub</a>
+                style="background: var(--glass); border: 1px solid var(--border); display: flex; align-items: center; gap: 0.5rem;">
+                <img src="https://cdn.simpleicons.org/github/white" alt="GitHub" style="width: 18px; height: 18px;">
+                GitHub
+            </a>
         </nav>
     </header>
 
@@ -57,8 +60,8 @@
 
 
         <p class="hero-sub">
-            yōmu! is a lightweight companion that automatically injects furigana into any website, helping you bridge
-            the gap between spoken and written Japanese.
+            yōmu! is a lightweight companion that automatically injects <span id="hero-guide" style="color: var(--primary); font-weight: 600;">furigana</span> into any website, helping you bridge
+            the gap between spoken and written <span id="hero-lang" style="color: var(--primary); font-weight: 600;">Japanese</span>.
         </p>
 
         <div class="demo-container">
@@ -75,6 +78,9 @@
                         <option value="ja">Japanese (Furigana)</option>
                         <option value="zh">Chinese (Pinyin)</option>
                         <option value="ar">Arabic (Transliteration)</option>
+                        <option value="ru">Russian (Transliteration)</option>
+                        <option value="hi">Hindi (Transliteration)</option>
+                        <option value="ban">Balinese (Aksara Bali)</option>
                     </select>
 
                     <button id="annotate-btn" class="btn" style="flex: 1;">Annotate Now</button>
@@ -86,34 +92,29 @@
                 <div id="output-box" class="output-box">
                     <em>The result will appear here...</em>
                 </div>
+                <div style="text-align: right; margin-top: 0.5rem; font-size: 0.85rem; opacity: 0.6; font-style: italic;">
+                    Analysis Powered by Gemini 2.0 Flash
+                </div>
             </div>
         </div>
 
         <div class="store-grid">
-            <a href="#" class="store-btn">
-                <svg viewBox="0 0 24 24">
-                    <path
-                        d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-1 17.93c-3.95-.49-7-3.85-7-7.93 0-.62.08-1.21.21-1.79L9 15v1c0 1.1.9 2 2 2v1.93zm6.9-2.54c-.26-.81-1-1.39-1.9-1.39h-1v-3c0-.55-.45-1-1-1H8v-2h2c.55 0 1-.45 1-1V7h2c1.1 0 2-.9 2-2v-.41c2.93 1.19 5 4.06 5 7.41 0 2.08-.8 3.97-2.1 5.39z" />
-                </svg>
+            <a href="#" class="store-btn chrome-btn">
+                <img src="https://cdn.simpleicons.org/googlechrome/white" alt="Chrome" style="width: 24px; height: 24px;">
                 <div class="btn-text">
                     <span class="small">Available in</span>
                     <span class="large">Chrome Store</span>
                 </div>
             </a>
-            <a href="#" class="store-btn">
-                <svg viewBox="0 0 24 24">
-                    <path d="M12 2L4.5 20.29L5.21 21L12 18L18.79 21L19.5 20.29L12 2Z" />
-                </svg>
+            <a href="#" class="store-btn firefox-btn">
+                <img src="https://cdn.simpleicons.org/firefoxbrowser/white" alt="Firefox" style="width: 24px; height: 24px;">
                 <div class="btn-text">
                     <span class="small">Get it for</span>
                     <span class="large">Firefox</span>
                 </div>
             </a>
-            <a href="#" class="store-btn">
-                <svg viewBox="0 0 24 24">
-                    <path
-                        d="M18.71 19.5c-.83 1.24-1.71 2.45-3.1 2.48-1.34.03-1.77-.79-3.29-.79-1.53 0-2 .77-3.27.82-1.31.05-2.3-1.32-3.14-2.53C4.25 17 2.94 12.45 4.7 9.39c.87-1.52 2.43-2.48 4.12-2.51 1.28-.02 2.5.87 3.29.87.78 0 2.26-1.07 3.81-.91.65.03 2.47.26 3.64 1.98-.09.06-2.17 1.28-2.15 3.81.03 3.02 2.65 4.03 2.68 4.04-.03.07-.42 1.44-1.38 2.83M13 3.5c.73-.83 1.23-1.93 1.09-3.04-1.02.04-2.25.68-2.98 1.54-.65.76-1.23 1.91-1.08 2.99 1.13.08 2.24-.66 2.97-1.49z" />
-                </svg>
+            <a href="#" class="store-btn safari-btn">
+                <img src="https://cdn.simpleicons.org/apple/white" alt="Safari" style="width: 24px; height: 24px;">
                 <div class="btn-text">
                     <span class="small">Install on</span>
                     <span class="large">Safari iOS</span>
@@ -149,8 +150,7 @@
             <p>You can use yōmu! on your mobile devices too:</p>
             <ul>
                 <li><strong>iOS:</strong> Install our Safari Extension to get furigana on any webpage.</li>
-                <li><strong>Arabic, Russian & Hindi:</strong> Get instant Latin transliteration for Cyrillic, Arabic,
-                    and Devanagari scripts.</li>
+                <li><strong>Multi-Script:</strong> Instant Latin transliteration for Arabic, Russian, and Hindi.</li>
 
                 <li><strong>Web Demo:</strong> Save this page to your home screen for quick access.</li>
             </ul>
@@ -165,6 +165,7 @@
             <a href="/privacy" style="color: inherit; text-decoration: none;">Privacy Policy</a> •
             Built by <a href="https://github.com/Schryzon" style="color: inherit; text-decoration: underline;">Schryzon</a>
         </p>
+        <p style="margin-top: 1rem; font-weight: 800; letter-spacing: 2px; color: var(--primary); opacity: 0.8;">#JuaraVibeCoding</p>
     </footer>
 
 
@@ -174,13 +175,25 @@
         const btn = document.getElementById('annotate-btn');
         const output = document.getElementById('output-box');
         const langSelect = document.getElementById('lang-select');
+        const heroGuide = document.getElementById('hero-guide');
+        const heroLang = document.getElementById('hero-lang');
 
         const LANGS = {
             ja: "Japanese",
             zh: "Chinese",
             ar: "Arabic",
             ru: "Russian",
-            hi: "Hindi"
+            hi: "Hindi",
+            ban: "Balinese"
+        };
+
+        const GUIDES = {
+            ja: "furigana",
+            zh: "pinyin",
+            ar: "transliteration",
+            ru: "transliteration",
+            hi: "transliteration",
+            ban: "transliteration"
         };
 
         let currentLang = "ja";
@@ -191,6 +204,7 @@
             if (/[\u0600-\u06FF]/.test(text)) return "ar";
             if (/[\u0400-\u04FF]/.test(text)) return "ru";
             if (/[\u0900-\u097F]/.test(text)) return "hi";
+            if (/[\u1B00-\u1B7F]/.test(text)) return "ban";
             return "ja";
         }
 
@@ -204,6 +218,9 @@
             
             setTimeout(() => {
                 langReel.textContent = newName;
+                heroGuide.textContent = GUIDES[newLangKey] || "furigana";
+                heroLang.textContent = newName;
+                
                 langReel.style.animation = 'spin-in 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards';
                 currentLang = newLangKey;
             }, 300);
@@ -255,17 +272,23 @@
 
         // Ambient Background Logic
         const ambientContainer = document.getElementById('ambient-bg');
-        const chars = [
-            // Japanese (Hiragana/Katakana)
-            ..."あいうえおかきくけこさしすせそたちつてとなにぬねのはひふへほまみむめもやゆよらりるれろわをん".split(""),
-            // Chinese (Common Hanzi)
-            ..."の一是国在人了有中这大来上个国社工政道前後中左右".split(""),
+        const VOCABULARY = [
+            // Japanese
+            "読夢", "未来", "平和", "希望", "力", "愛", "光", "道", "心", "夢",
+            // Chinese
+            "梦想", "力量", "未来", "和平", "爱", "光", "友谊", "智慧",
             // Arabic
-            ..."ابتثجحخدذرزسشصضطظعغفقكلمنهوي".split(""),
+            "سلام", "حب", "أمل", "قوة", "مستقبل", "حلم", "نور",
             // Russian
-            ..."абвгдеёжзийклмнопрстуфхцчшщъыьэюя".split(""),
+            "Мир", "Любовь", "Сила", "Мечта", "Будущее", "Свет", "Жизнь",
             // Hindi
-            ..."अआइईउऊऋएऐओऔकखगघङचछजझञटठडढणतथदधनपफबभमयरलवशषसह".split("")
+            "शांति", "सपना", "भविष्य", "शक्ति", "प्रेम", "प्रकाश",
+            // Balinese
+            "ᬰᬵᬦ᭄ᬢᬶ", "ᬳᬶᬧᬶᬳᬦ᭄", "ᬩᬵᬬᬸ", "ᬭᬳᬚ᭄ᬜ᭄", "ᬢ᭄ᬭᬾᬱ᭄ᬡᬵ",
+            // Indonesian
+            "Mimpi", "Masa Depan", "Kekuatan", "Cinta", "Semangat", "Damai", "Cahaya",
+            // English/Latin
+            "DREAM", "PEACE", "FUTURE", "POWER", "LIGHT", "YOMU", "CORE", "SENSE", "MIND"
         ];
 
         function createStream() {
@@ -273,29 +296,45 @@
             stream.className = 'ambient-stream';
             
             let content = "";
-            for(let i=0; i<30; i++) {
-                content += chars[Math.floor(Math.random() * chars.length)] + "\n";
+            const streamLength = 10 + Math.floor(Math.random() * 20);
+            for(let i=0; i<streamLength; i++) {
+                content += VOCABULARY[Math.floor(Math.random() * VOCABULARY.length)] + "\n";
             }
             stream.innerText = content;
             
-            // Randomize position and animation (Slow drift)
-            const duration = 40 + Math.random() * 40;
-            const delay = -Math.random() * 80;
+            // Randomize position and animation (Matrix Rain)
+            const isMobile = window.innerWidth < 768;
+            const duration = (isMobile ? 10 : 15) + Math.random() * 35;
+            const delay = -Math.random() * 50;
+            const sizeBase = isMobile ? 0.7 : 1.0;
+            const size = sizeBase + Math.random() * (isMobile ? 0.6 : 1.2);
+            const opacity = 0.4 + Math.random() * 0.6;
+            
             stream.style.setProperty('--duration', `${duration}s`);
+            stream.style.setProperty('--size', `${size}rem`);
+            stream.style.setProperty('--opacity', `${opacity}`);
             stream.style.animationDelay = `${delay}s`;
 
-            
             ambientContainer.appendChild(stream);
         }
 
-        // Create initial streams
-        const streamCount = Math.floor(window.innerWidth / 50);
+        // Create high-density initial streams
+        const streamCount = Math.floor(window.innerWidth / 30); // Higher density
         for(let i=0; i<streamCount; i++) {
             createStream();
         }
 
         btn.addEventListener('click', annotate);
-        window.addEventListener('DOMContentLoaded', annotate);
+        window.addEventListener('DOMContentLoaded', () => {
+            annotate();
+            
+            // Register PWA Service Worker
+            if ('serviceWorker' in navigator) {
+                navigator.serviceWorker.register('/static/sw.js')
+                    .then(reg => console.log('yōmu! PWA Service Worker active'))
+                    .catch(err => console.log('SW registration failed', err));
+            }
+        });
     </script>
 
 </body>

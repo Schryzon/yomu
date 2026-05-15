@@ -7,7 +7,7 @@
         body {
             width: 300px;
             padding: 20px;
-            background: #0f172a;
+            background: radial-gradient(circle at top right, #1e1b4b, #020617);
             color: white;
             font-family: 'Outfit', sans-serif;
             margin: 0;
@@ -21,42 +21,52 @@
         .logo {
             font-weight: 800;
             font-size: 1.5rem;
-            color: #60a5fa;
+            color: #818cf8; /* Brand Primary */
         }
         .status {
-            padding: 10px;
-            background: rgba(255, 255, 255, 0.05);
+            padding: 12px;
+            background: rgba(255, 255, 255, 0.03);
             border: 1px solid rgba(255, 255, 255, 0.1);
             border-radius: 12px;
-            font-size: 0.9rem;
+            font-size: 0.85rem;
             margin-bottom: 15px;
-        }
-        .section-title {
-            font-size: 0.8rem;
-            text-transform: uppercase;
-            opacity: 0.5;
-            margin-bottom: 10px;
-            letter-spacing: 1px;
-        }
-        .control-group {
             display: flex;
-            flex-direction: column;
-            gap: 10px;
+            align-items: center;
+            gap: 8px;
+        }
+        .status-dot {
+            width: 8px;
+            height: 8px;
+            background: #2dd4bf;
+            border-radius: 50%;
+            box-shadow: 0 0 10px #2dd4bf;
+            animation: pulse 2s infinite;
+        }
+        @keyframes pulse {
+            0% { opacity: 1; transform: scale(1); }
+            50% { opacity: 0.5; transform: scale(1.2); }
+            100% { opacity: 1; transform: scale(1); }
         }
         .btn {
-            background: #60a5fa;
-            color: #0f172a;
+            background: #818cf8;
+            color: white;
             border: none;
-            padding: 10px;
-            border-radius: 8px;
+            padding: 12px;
+            border-radius: 10px;
             font-weight: 700;
             cursor: pointer;
-            transition: all 0.2s;
+            transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
             text-align: center;
         }
         .btn:hover {
             transform: translateY(-2px);
-            background: #93c5fd;
+            background: #6366f1;
+            box-shadow: 0 4px 12px rgba(99, 102, 241, 0.4);
+        }
+        .btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+            transform: none;
         }
         .footer {
             margin-top: 20px;
@@ -72,6 +82,7 @@
     </div>
     
     <div class="status" id="status-text">
+        <div class="status-dot"></div>
         Ready to enhance your reading.
     </div>
 

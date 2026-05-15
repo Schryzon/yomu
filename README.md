@@ -1,6 +1,8 @@
+<p align="center">
+  <img src="yomu-logo.png" width="200" alt="yōmu! logo">
+</p>
+
 # yōmu! (ヨォム)
-
-
 
 [![License: AGPL v3](https://img.shields.io/badge/License-AGPL%20v3-blue.svg)](https://opensource.org/licenses/AGPL-3.0)
 [![Python 3.12](https://img.shields.io/badge/Python-3.12-blue.svg)](https://www.python.org/downloads/release/python-3120/)
@@ -11,14 +13,22 @@
 
 yōmu! is a real-time linguistic augmentation layer for the web. It dynamically injects pronunciation guides (Furigana, Pinyin, or Transliteration) into any website, allowing you to read Japanese, Chinese, and Arabic without breaking your flow.
 
-[**Try the Web Demo**](https://yomu-api-447937177163.asia-southeast2.run.app/) | [**Install Extension**](#installation) | [**Contributing**](CONTRIBUTING.md)
+[**Try the Web Demo**](https://yomu-447937177163.asia-southeast2.run.app/) | [**Install Extension**](#installation) | [**Contributing**](CONTRIBUTING.md)
 
+---
 
+## Table of Contents
+- [Features](#features)
+- [How to Use](#how-to-use)
+- [Architecture](#architecture)
+- [Installation](#installation)
+- [Testing](#testing)
+- [Contributing](#contributing)
+- [License](#license)
 
 ---
 
 ## Features
-
 
 - **Japanese (Furigana)**: Automatically adds Hiragana reading aids above Kanji using `pykakasi`.
 - **Chinese (Pinyin)**: Injects tonal Pinyin above Hanzi characters via `pypinyin`.
@@ -26,20 +36,17 @@ yōmu! is a real-time linguistic augmentation layer for the web. It dynamically 
 - **Russian (Transliteration)**: Adds phonetic Latin guides above Cyrillic text.
 - **Hindi (Transliteration)**: Provides phonetic guides for Devanagari script.
 
-
-
 - **Smart Detection**: Automatically identifies the language of the page or specific text blocks.
 - **Premium UI**: A glassmorphic, non-intrusive floating widget that provides real-time feedback.
 - **Mobile Ready**: Responsive landing page with PWA support and a strategy for mobile browser extensions.
 - **High Performance**: Powered by a Python FastAPI backend deployed on Google Cloud Run for low latency.
-
 
 ---
 
 ## How to Use
 
 ### 🌐 Web Demo
-1.  Navigate to the [yōmu! Web Demo](https://yomu-api-447937177163.asia-southeast2.run.app/).
+1.  Navigate to the [yōmu! Web Demo](https://yomu-447937177163.asia-southeast2.run.app/).
 2.  Type or paste text in the input box (Japanese, Chinese, Arabic, Russian, or Hindi).
 3.  The annotated text will appear instantly in the output box.
 
@@ -57,8 +64,6 @@ yōmu! is a real-time linguistic augmentation layer for the web. It dynamically 
 
 ## Architecture
 
-
-
 yōmu! is built with a decoupled architecture for maximum flexibility:
 
 1.  **Frontend (Extension)**: A Manifest V3 browser extension that parses the DOM safely, handles UI state, and communicates with the backend.
@@ -68,7 +73,6 @@ yōmu! is built with a decoupled architecture for maximum flexibility:
 ---
 
 ## Installation
-
 
 ### 1. Browser Extension
 **Chrome / Edge / Brave:**
@@ -111,10 +115,7 @@ This project is licensed under the **GNU Affero General Public License v3 (AGPL-
 
 ---
 
-## Code of Conduct
-
-We are committed to fostering an open and welcoming environment. Please read our [Code of Conduct](CODE_OF_CONDUCT.md) before participating in the project.
-
----
-
+**Analysis Powered by Gemini 2.0 Flash**  
 Built with ❤️ by Schryzon & contributors for language learners everywhere.
+
+#JuaraVibeCoding

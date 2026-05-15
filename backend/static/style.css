@@ -39,7 +39,7 @@ body {
     left: 0;
     width: 100%;
     height: 100%;
-    z-index: -2;
+    z-index: 0; /* Bottom layer */
     filter: blur(80px);
     opacity: 0.4;
 }
@@ -50,27 +50,28 @@ body {
     left: 0;
     width: 100%;
     height: 100%;
-    z-index: -1;
+    z-index: 1; 
     overflow: hidden;
     pointer-events: none;
     display: flex;
     justify-content: space-around;
-    opacity: 0.02; /* Nearly invisible, extremely subtle */
+    opacity: 0.20; /* Boosted for better word visibility */
     user-select: none;
-    filter: blur(1px); /* Soften the characters */
 }
 
 
 .ambient-stream {
     writing-mode: vertical-rl;
     text-orientation: upright;
-    font-size: 1.2rem;
+    font-size: var(--size, 1.2rem);
     font-weight: 900;
-    line-height: 2;
-    letter-spacing: 0.5em;
+    line-height: 1;
+    letter-spacing: 0.2em;
     color: var(--primary);
     white-space: nowrap;
-    animation: stream-scroll var(--duration) linear infinite;
+    opacity: var(--opacity, 1);
+    text-shadow: 0 0 8px var(--primary);
+    animation: stream-scroll var(--duration, 20s) linear infinite;
 }
 
 @keyframes stream-scroll {
@@ -90,7 +91,7 @@ body {
     background: var(--primary);
     top: -10%;
     right: -10%;
-    opacity: 0.15;
+    opacity: 0.25; /* Increased glow */
     animation: move 20s infinite alternate;
 }
 
@@ -98,10 +99,9 @@ body {
     background: var(--secondary);
     bottom: -10%;
     left: -10%;
-    opacity: 0.1;
+    opacity: 0.2; /* Increased glow */
     animation: move 25s infinite alternate-reverse;
 }
-
 
 @keyframes move {
     from { transform: translate(0, 0); }
@@ -116,6 +116,8 @@ header {
     max-width: 1200px;
     margin: 0 auto;
     width: 100%;
+    position: relative;
+    z-index: 10;
 }
 
 .logo {
@@ -124,6 +126,7 @@ header {
     background: linear-gradient(to right, var(--primary), var(--secondary));
 
     -webkit-background-clip: text;
+    background-clip: text;
     -webkit-text-fill-color: transparent;
     letter-spacing: -0.05em;
 }
@@ -161,6 +164,8 @@ main {
     padding: 4rem 2rem;
     width: 100%;
     text-align: center;
+    position: relative;
+    z-index: 10;
 }
 
 h1 {
@@ -300,6 +305,10 @@ ruby rt {
     border-color: var(--primary);
 }
 
+.chrome-btn:hover { border-color: #4285F4; box-shadow: 0 0 20px rgba(66, 133, 244, 0.2); }
+.firefox-btn:hover { border-color: #FF7139; box-shadow: 0 0 20px rgba(255, 113, 57, 0.2); }
+.safari-btn:hover { border-color: #A2AAAD; box-shadow: 0 0 20px rgba(162, 170, 173, 0.2); }
+
 .store-btn svg {
     width: 24px;
     height: 24px;
@@ -411,25 +420,78 @@ ruby rt {
 }
 
 footer {
-
-
-    padding: 2rem;
+    padding: 3rem 2rem 2rem;
     text-align: center;
     color: var(--text-muted);
     font-size: 0.875rem;
+    position: relative;
+    z-index: 10;
+    overflow: hidden;
 }
 
-/* Scrollbar styling */
+.footer-seal {
+    position: absolute;
+    bottom: -50px;
+    right: -50px;
+    width: 400px;
+    opacity: 0.05;
+    filter: invert(1);
+    pointer-events: none;
+    z-index: -1;
+    transform: rotate(-15deg);
+}
+
+/* 🎨 Premium Custom Scrollbar */
 ::-webkit-scrollbar {
     width: 8px;
 }
+
 ::-webkit-scrollbar-track {
-    background: transparent;
+    background: var(--bg);
 }
+
 ::-webkit-scrollbar-thumb {
-    background: var(--border);
-    border-radius: 4px;
+    background: var(--primary);
+    border-radius: 10px;
+    border: 2px solid var(--bg);
 }
+
 ::-webkit-scrollbar-thumb:hover {
-    background: rgba(255, 255, 255, 0.2);
+    background: var(--secondary);
+}
+
+/* 💠 Smooth Annotation Scale-up */
+.annotated-text ruby {
+    display: inline-block;
+    animation: scaleIn 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
+    transform-origin: bottom;
+}
+
+@keyframes scaleIn {
+    from { opacity: 0; transform: scale(0.8) translateY(5px); }
+    to { opacity: 1; transform: scale(1) translateY(0); }
+}
+
+/* 🎞️ Hero Reel Animation */
+#lang-reel-container {
+    height: 1.2em;
+    overflow: hidden;
+    display: inline-block;
+    vertical-align: bottom;
+    padding: 0 0.2em;
+}
+
+#lang-reel {
+    display: block;
+    color: var(--primary);
+}
+
+@keyframes spin-out {
+    from { opacity: 1; transform: translateY(0); }
+    to { opacity: 0; transform: translateY(-100%); }
+}
+
+@keyframes spin-in {
+    from { opacity: 0; transform: translateY(100%); }
+    to { opacity: 1; transform: translateY(0); }
 }

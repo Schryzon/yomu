@@ -72,11 +72,12 @@ async def annotate(request: AnnotateRequest):
 
     """
     try:
-        annotated = get_real_annotation(request.text, target_lang=request.target_lang)
+        annotated = await get_real_annotation(request.text, target_lang=request.target_lang)
         return {"status": "success", "annotated_html": annotated}
 
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
+    except Exception:
+        # Detailed error is sent to Discord in ai_service.get_real_annotation
+        raise HTTPException(status_code=500, detail="Internal Annotation Service Error")
 
 @app.post("/api/explain")
 async def explain(request: ExplainRequest):
@@ -87,5 +88,6 @@ async def explain(request: ExplainRequest):
         explanation = await explain_text(request.text, request.context)
 
         return {"status": "success", "explanation": explanation}
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
+    except Exception:
+        # Detailed error is sent to Discord in ai_service.explain_text
+        raise HTTPException(status_code=500, detail="Internal Deep Analysis Error")

@@ -1,7 +1,7 @@
 // yomu! background service worker
 // Connects the extension to the FastAPI backend
 
-const BASE_URL = "https://yomu-api-447937177163.asia-southeast2.run.app/api";
+const BASE_URL = "https://yomu-447937177163.asia-southeast2.run.app/api";
 
 chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
     if (request.action === 'process_text') {

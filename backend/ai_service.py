@@ -7,6 +7,10 @@ from langdetect import detect_langs
 from google import genai
 from dotenv import load_dotenv
 import re
+import httpx
+import json
+import datetime
+import asyncio
 
 load_dotenv()
 
@@ -16,6 +20,38 @@ if GEMINI_API_KEY:
     client = genai.Client(api_key=GEMINI_API_KEY)
 else:
     client = None
+
+# Developer Alerts
+WEBHOOK_URL = os.getenv("DEVELOPER_WEBHOOK_URL")
+OWNER_ID = os.getenv("WEBHOOK_OWNER_ID")
+
+async def send_developer_alert(error_msg: str, context: str = None):
+    """
+    Delivers raw error details straight to the developer via Discord (Non-blocking).
+    """
+    if not WEBHOOK_URL:
+        return
+
+    mention = f"<@{OWNER_ID}> " if OWNER_ID else ""
+    payload = {
+        "content": f"{mention}🚨 **yōmu! Developer Alert**",
+        "embeds": [{
+            "title": "Gemini API Error",
+            "description": f"```{error_msg}```",
+            "color": 15158332, # Red
+            "fields": [
+                {"name": "Timestamp", "value": datetime.datetime.now().isoformat(), "inline": True},
+                {"name": "Context", "value": context if context else "N/A", "inline": False}
+            ],
+            "footer": {"text": "yōmu! Production Layer"}
+        }]
+    }
+
+    try:
+        async with httpx.AsyncClient() as client:
+            await client.post(WEBHOOK_URL, json=payload, timeout=5.0)
+    except Exception as e:
+        print(f"Failed to send webhook: {e}")
 
 
 
@@ -40,7 +76,7 @@ AR_MAP = {
 }
 
 
-def get_real_annotation(text: str, target_lang: str = "auto") -> str:
+async def get_real_annotation(text: str, target_lang: str = "auto") -> str:
     """
     Analyzes the text and wraps it in ruby tags based on the target language.
     """
@@ -54,7 +90,7 @@ def get_real_annotation(text: str, target_lang: str = "auto") -> str:
         parts = text.split(delimiter)
         annotated_parts = []
         for part in parts:
-            annotated_parts.append(get_real_annotation(part.strip(), target_lang))
+            annotated_parts.append(await get_real_annotation(part.strip(), target_lang))
         return delimiter.join(annotated_parts)
 
     # Language detection logic
@@ -74,10 +110,10 @@ def get_real_annotation(text: str, target_lang: str = "auto") -> str:
                     target_lang = "ru"
                 elif top_lang == 'hi':
                     target_lang = "hi"
+                elif re.search(r'[\u1B00-\u1B7F]', text):
+                    target_lang = "ban" # Balinese ISO code
                 else:
                     target_lang = "ja"
-
-
 
             else:
                 return text
@@ -95,36 +131,57 @@ def get_real_annotation(text: str, target_lang: str = "auto") -> str:
             return process_russian_text(text)
         elif target_lang == 'hi':
             return process_hindi_text(text)
+        elif target_lang == 'ban':
+            return process_balinese_text(text)
         
         return text
 
     except Exception as e:
-        print(f"Annotation Error: {e}")
+        error_msg = str(e)
+        print(f"Annotation Error: {error_msg}")
+        
+        # Deliver to developer (awaiting now!)
+        await send_developer_alert(error_msg, context=f"Annotation Batch: {text[:100]}...")
+        
+        if "429" in error_msg:
+            print("CRITICAL: Gemini Rate Limit (429) hit during annotation.")
         return text
 
 
 def process_single_text(text: str) -> str:
     """
     Helper function to process a single string with pykakasi.
-    Ensures only Kanji-containing segments get ruby tags.
+    Protects Latin/special characters by only processing Japanese script blocks.
     """
     if not text:
         return text
         
-    result = kks.convert(text)
+    # Regex to identify Japanese script blocks (Kanji, Hiragana, Katakana, and Japanese punctuation)
+    # This ensures "yōmu!" and other Latin text is never even seen by pykakasi.
+    jp_pattern = re.compile(r'([\u3040-\u309F\u30A0-\u30FF\u4E00-\u9FAF\u3000-\u303F]+)')
+    parts = jp_pattern.split(text)
+    
     annotated_html = ""
-    for item in result:
-        orig = item['orig']
-        hira = item['hira']
-        
-        # Check if the segment actually contains Kanji
-        # (Japanese Kanji range: 4E00-9FAF)
-        has_kanji = any('\u4e00' <= c <= '\u9faf' for c in orig)
-        
-        if has_kanji and orig != hira:
-            annotated_html += f"<ruby>{orig}<rt>{hira}</rt></ruby>"
+    for part in parts:
+        if not part:
+            continue
+            
+        # If the part matches our Japanese script pattern, process it
+        if jp_pattern.match(part):
+            result = kks.convert(part)
+            for item in result:
+                orig = item['orig']
+                hira = item['hira']
+                
+                # Double check for Kanji to apply ruby
+                has_kanji = any('\u4e00' <= c <= '\u9faf' for c in orig)
+                if has_kanji and orig != hira:
+                    annotated_html += f"<ruby>{orig}<rt>{hira}</rt></ruby>"
+                else:
+                    annotated_html += orig
         else:
-            annotated_html += orig
+            # It's Latin, numbers, or other scripts - keep it EXACTLY as is
+            annotated_html += part
             
     return annotated_html
 
@@ -178,6 +235,22 @@ HI_MAP = {
     'ा': 'a', 'ि': 'i', 'ी': 'ee', 'ु': 'u', 'ू': 'oo', 'ृ': 'ri', 'े': 'e', 'ै': 'ai', 'ो': 'o', 'ौ': 'au', 'ं': 'n'
 }
 
+# Balinese Transliteration Mapping (Wianjana & Pangangge)
+BALI_MAP = {
+    # Consonants (Inherent 'a')
+    '\u1B13': 'ha', '\u1B14': 'na', '\u1B15': 'ca', '\u1B16': 'ra', '\u1B17': 'ka',
+    '\u1B18': 'da', '\u1B19': 'ta', '\u1B1A': 'sa', '\u1B1B': 'wa', '\u1B1C': 'la',
+    '\u1B1D': 'ma', '\u1B1E': 'ga', '\u1B1F': 'ba', '\u1B20': 'nga', '\u1B21': 'pa',
+    '\u1B22': 'ja', '\u1B23': 'ya', '\u1B24': 'nya',
+    # Vowel Signs (Pangangge)
+    '\u1B35': 'e',  '\u1B36': 'i',  '\u1B37': 'i',  '\u1B38': 'u',  '\u1B39': 'u',
+    '\u1B3E': 'e',  '\u1B40': 'o',  '\u1B3A': 'ra', '\u1B3C': 'la',
+    # Final Consonants
+    '\u1B02': 'ng', '\u1B03': 'r',  '\u1B04': 'h',
+    # Adeg-adeg (Killer)
+    '\u1B44': '' 
+}
+
 def process_hindi_text(text: str) -> str:
     """
     Lightweight Hindi transliteration.
@@ -212,22 +285,64 @@ def process_russian_text(text: str) -> str:
     return annotated_html
 
 def process_arabic_text(text: str) -> str:
-
     """
     Lightweight Arabic transliteration.
-    Wraps Arabic characters in ruby tags with their Latin equivalents.
     """
     annotated_html = ""
-    # Regex to catch Arabic characters
     arabic_pattern = re.compile(r'[\u0600-\u06FF]')
-    
     for char in text:
         if arabic_pattern.match(char):
-            # Use mapping if exists, otherwise keep char
             trans = AR_MAP.get(char, char)
             annotated_html += f"<ruby>{char}<rt>{trans}</rt></ruby>"
         else:
             annotated_html += char
+    return annotated_html
+
+def process_balinese_text(text: str) -> str:
+    """
+    Advanced Balinese transliteration handling Adeg-adeg and Pangangge.
+    """
+    annotated_html = ""
+    # Regex to catch Balinese script characters
+    bali_pattern = re.compile(r'[\u1B00-\u1B7F]')
+    
+    i = 0
+    while i < len(text):
+        char = text[i]
+        
+        if bali_pattern.match(char):
+            # Consonant or special mark
+            trans = BALI_MAP.get(char, "")
+            
+            if not trans:
+                annotated_html += char
+                i += 1
+                continue
+
+            # Peak ahead to see if it's killed or modified
+            next_char = text[i+1] if i + 1 < len(text) else ""
+            
+            if next_char == '\u1B44': # Adeg-adeg
+                trans = trans[:-1] if trans.endswith('a') else trans
+                annotated_html += f"<ruby>{char}<rt>{trans}</rt></ruby>"
+                i += 2 # Skip adeg-adeg
+                continue
+            
+            elif next_char in ['\u1B35', '\u1B36', '\u1B37', '\u1B38', '\u1B39', '\u1B3E', '\u1B40']: # Vowels
+                vowel = BALI_MAP.get(next_char, 'a')
+                trans = (trans[:-1] if trans.endswith('a') else trans) + vowel
+                # Combine char + vowel in ruby for clarity
+                annotated_html += f"<ruby>{char}{next_char}<rt>{trans}</rt></ruby>"
+                i += 2
+                continue
+            
+            else:
+                # Inherent 'a' remains
+                annotated_html += f"<ruby>{char}<rt>{trans}</rt></ruby>"
+                i += 1
+        else:
+            annotated_html += char
+            i += 1
             
     return annotated_html
 
@@ -240,7 +355,9 @@ async def explain_text(text: str, context: str = "") -> str:
     
     prompt = f"""
     You are yōmu! (ヨォム), a linguistic AI assistant. 
-    Analyze the following text: "{text}"
+    Analyze the following user-provided text within the brackets: 
+    [[ {text} ]]
+    
     Context (if available): "{context}"
     
     Provide a concise explanation for a language learner. 
@@ -250,7 +367,7 @@ async def explain_text(text: str, context: str = "") -> str:
     3. How to use it in a sentence.
     
     Keep it cinematic, helpful, and very brief (max 100 words).
-    Use simple HTML formatting (e.g., <strong>, <br>).
+    Use ONLY the following HTML tags for formatting: <strong>, <br>, <em>.
     """
     
     try:
@@ -262,8 +379,18 @@ async def explain_text(text: str, context: str = "") -> str:
 
         return response.text
     except Exception as e:
-        print(f"Gemini Error: {e}")
-        return f"Could not generate explanation: {str(e)}"
+        error_msg = str(e)
+        print(f"Gemini Error: {error_msg}")
+        
+        # Deliver to developer (awaiting now!)
+        await send_developer_alert(error_msg, context=f"Deep Analysis: {text[:100]}")
+        
+        if "429" in error_msg:
+            return "<strong>Quota Exceeded (429)</strong><br>Gemini is currently catching its breath. Please wait a minute before trying deep analysis again."
+        elif "RESOURCE_EXHAUSTED" in error_msg:
+            return "<strong>Resource Exhausted</strong><br>The free tier limit for Gemini 2.0 Flash has been reached. Try again in a moment."
+            
+        return f"Could not generate explanation: {error_msg}"
 
 
 def get_mock_annotation(text: str) -> str:
