@@ -142,9 +142,6 @@ async def get_real_annotation(text: str, target_lang: str = "auto") -> str:
         
         # Deliver to developer (awaiting now!)
         await send_developer_alert(error_msg, context=f"Annotation Batch: {text[:100]}...")
-        
-        if "429" in error_msg:
-            print("CRITICAL: Gemini Rate Limit (429) hit during annotation.")
         return text
 
 
@@ -176,12 +173,47 @@ def process_single_text(text: str) -> str:
                 # Double check for Kanji to apply ruby
                 has_kanji = any('\u4e00' <= c <= '\u9faf' for c in orig)
                 if has_kanji and orig != hira:
-                    annotated_html += f"<ruby>{orig}<rt>{hira}</rt></ruby>"
+                    # Strip okurigana (tense characters) from the ruby tags
+                    prefix = ''
+                    while orig and hira and orig[0] == hira[0] and not ('\u4e00' <= orig[0] <= '\u9faf'):
+                        prefix += orig[0]
+                        orig = orig[1:]
+                        hira = hira[1:]
+                        
+                    suffix = ''
+                    while orig and hira and orig[-1] == hira[-1] and not ('\u4e00' <= orig[-1] <= '\u9faf'):
+                        suffix = orig[-1] + suffix
+                        orig = orig[:-1]
+                        hira = hira[:-1]
+                        
+                    if orig:
+                        annotated_html += f"{prefix}<ruby>{orig}<rt>{hira}</rt></ruby>{suffix}"
+                    else:
+                        annotated_html += f"{prefix}{suffix}"
                 else:
                     annotated_html += orig
         else:
             # It's Latin, numbers, or other scripts - keep it EXACTLY as is
             annotated_html += part
+            
+    # Post-process common Arabic numeral counters that pykakasi splits incorrectly
+    replacements = {
+        '1<ruby>人<rt>にん</rt></ruby>': '<ruby>1人<rt>ひとり</rt></ruby>',
+        '2<ruby>人<rt>にん</rt></ruby>': '<ruby>2人<rt>ふたり</rt></ruby>',
+        '1<ruby>日<rt>にち</rt></ruby>': '<ruby>1日<rt>ついたち</rt></ruby>',
+        '2<ruby>日<rt>にち</rt></ruby>': '<ruby>2日<rt>ふつか</rt></ruby>',
+        '3<ruby>日<rt>にち</rt></ruby>': '<ruby>3日<rt>みっか</rt></ruby>',
+        '4<ruby>日<rt>にち</rt></ruby>': '<ruby>4日<rt>よっか</rt></ruby>',
+        '5<ruby>日<rt>にち</rt></ruby>': '<ruby>5日<rt>いつか</rt></ruby>',
+        '6<ruby>日<rt>にち</rt></ruby>': '<ruby>6日<rt>むいか</rt></ruby>',
+        '7<ruby>日<rt>にち</rt></ruby>': '<ruby>7日<rt>なのか</rt></ruby>',
+        '8<ruby>日<rt>にち</rt></ruby>': '<ruby>8日<rt>ようか</rt></ruby>',
+        '9<ruby>日<rt>にち</rt></ruby>': '<ruby>9日<rt>ここのか</rt></ruby>',
+        '10<ruby>日<rt>にち</rt></ruby>': '<ruby>10日<rt>とおか</rt></ruby>',
+        '20<ruby>日<rt>にち</rt></ruby>': '<ruby>20日<rt>はつか</rt></ruby>'
+    }
+    for bad, good in replacements.items():
+        annotated_html = annotated_html.replace(bad, good)
             
     return annotated_html
 
@@ -237,11 +269,14 @@ HI_MAP = {
 
 # Balinese Transliteration Mapping (Wianjana & Pangangge)
 BALI_MAP = {
-    # Consonants (Inherent 'a')
-    '\u1B13': 'ha', '\u1B14': 'na', '\u1B15': 'ca', '\u1B16': 'ra', '\u1B17': 'ka',
-    '\u1B18': 'da', '\u1B19': 'ta', '\u1B1A': 'sa', '\u1B1B': 'wa', '\u1B1C': 'la',
-    '\u1B1D': 'ma', '\u1B1E': 'ga', '\u1B1F': 'ba', '\u1B20': 'nga', '\u1B21': 'pa',
-    '\u1B22': 'ja', '\u1B23': 'ya', '\u1B24': 'nya',
+    # Consonants (Inherent 'a') - Corrected Unicode order
+    '\u1B13': 'ka', '\u1B14': 'kha', '\u1B15': 'ga', '\u1B16': 'gha', '\u1B17': 'nga',
+    '\u1B18': 'ca', '\u1B19': 'cha', '\u1B1A': 'ja', '\u1B1B': 'jha', '\u1B1C': 'nya',
+    '\u1B1D': 'ta', '\u1B1E': 'tha', '\u1B1F': 'da', '\u1B20': 'dha', '\u1B21': 'na',
+    '\u1B22': 'ta', '\u1B23': 'tha', '\u1B24': 'da', '\u1B25': 'dha', '\u1B26': 'na',
+    '\u1B27': 'pa', '\u1B28': 'pha', '\u1B29': 'ba', '\u1B2A': 'bha', '\u1B2B': 'ma',
+    '\u1B2C': 'ya', '\u1B2D': 'ra', '\u1B2E': 'la', '\u1B2F': 'wa', '\u1B30': 'sa',
+    '\u1B31': 'sa', '\u1B32': 'sa', '\u1B33': 'ha',
     # Vowel Signs (Pangangge)
     '\u1B35': 'e',  '\u1B36': 'i',  '\u1B37': 'i',  '\u1B38': 'u',  '\u1B39': 'u',
     '\u1B3E': 'e',  '\u1B40': 'o',  '\u1B3A': 'ra', '\u1B3C': 'la',
@@ -253,96 +288,101 @@ BALI_MAP = {
 
 def process_hindi_text(text: str) -> str:
     """
-    Lightweight Hindi transliteration.
+    Lightweight Hindi transliteration (Word-level to preserve shaping).
     """
     annotated_html = ""
-    hindi_pattern = re.compile(r'[\u0900-\u097F]')
+    hindi_pattern = re.compile(r'([\u0900-\u097F]+)')
+    parts = hindi_pattern.split(text)
     
-    for char in text:
-        if hindi_pattern.match(char):
-            trans = HI_MAP.get(char, char)
-            annotated_html += f"<ruby>{char}<rt>{trans}</rt></ruby>"
+    for part in parts:
+        if not part:
+            continue
+        if hindi_pattern.match(part):
+            trans = "".join(HI_MAP.get(char, char) for char in part)
+            annotated_html += f"<ruby>{part}<rt>{trans}</rt></ruby>"
         else:
-            annotated_html += char
+            annotated_html += part
             
     return annotated_html
 
 def process_russian_text(text: str) -> str:
-
     """
-    Lightweight Russian transliteration.
+    Lightweight Russian transliteration (Word-level).
     """
     annotated_html = ""
-    russian_pattern = re.compile(r'[\u0400-\u04FF]')
+    russian_pattern = re.compile(r'([\u0400-\u04FF]+)')
+    parts = russian_pattern.split(text)
     
-    for char in text:
-        if russian_pattern.match(char):
-            trans = RU_MAP.get(char, char)
-            annotated_html += f"<ruby>{char}<rt>{trans}</rt></ruby>"
+    for part in parts:
+        if not part:
+            continue
+        if russian_pattern.match(part):
+            trans = "".join(RU_MAP.get(char, char) for char in part)
+            annotated_html += f"<ruby>{part}<rt>{trans}</rt></ruby>"
         else:
-            annotated_html += char
+            annotated_html += part
             
     return annotated_html
 
 def process_arabic_text(text: str) -> str:
     """
-    Lightweight Arabic transliteration.
+    Lightweight Arabic transliteration (Word-level to preserve cursive connections).
     """
     annotated_html = ""
-    arabic_pattern = re.compile(r'[\u0600-\u06FF]')
-    for char in text:
-        if arabic_pattern.match(char):
-            trans = AR_MAP.get(char, char)
-            annotated_html += f"<ruby>{char}<rt>{trans}</rt></ruby>"
+    arabic_pattern = re.compile(r'([\u0600-\u06FF]+)')
+    parts = arabic_pattern.split(text)
+    
+    for part in parts:
+        if not part:
+            continue
+        if arabic_pattern.match(part):
+            trans = "".join(AR_MAP.get(char, char) for char in part)
+            annotated_html += f"<ruby>{part}<rt>{trans}</rt></ruby>"
         else:
-            annotated_html += char
+            annotated_html += part
+            
     return annotated_html
 
 def process_balinese_text(text: str) -> str:
     """
-    Advanced Balinese transliteration handling Adeg-adeg and Pangangge.
+    Advanced Balinese transliteration handling Adeg-adeg and Pangangge (Word-level).
     """
     annotated_html = ""
-    # Regex to catch Balinese script characters
-    bali_pattern = re.compile(r'[\u1B00-\u1B7F]')
+    bali_pattern = re.compile(r'([\u1B00-\u1B7F]+)')
+    parts = bali_pattern.split(text)
     
-    i = 0
-    while i < len(text):
-        char = text[i]
-        
-        if bali_pattern.match(char):
-            # Consonant or special mark
-            trans = BALI_MAP.get(char, "")
-            
-            if not trans:
-                annotated_html += char
-                i += 1
-                continue
+    for part in parts:
+        if not part:
+            continue
+        if bali_pattern.match(part):
+            trans = ""
+            i = 0
+            while i < len(part):
+                char = part[i]
+                char_trans = BALI_MAP.get(char, "")
+                
+                if not char_trans:
+                    trans += char
+                    i += 1
+                    continue
 
-            # Peak ahead to see if it's killed or modified
-            next_char = text[i+1] if i + 1 < len(text) else ""
+                next_char = part[i+1] if i + 1 < len(part) else ""
+                
+                if next_char == '\u1B44': # Adeg-adeg
+                    trans += char_trans[:-1] if char_trans.endswith('a') else char_trans
+                    i += 2 # Skip adeg-adeg processing so we don't output anything for it
+                elif next_char in ['\u1B35', '\u1B36', '\u1B37', '\u1B38', '\u1B39', '\u1B3E', '\u1B40']: # Vowels
+                    vowel = BALI_MAP.get(next_char, 'a')
+                    trans += (char_trans[:-1] if char_trans.endswith('a') else char_trans) + vowel
+                    i += 2
+                else:
+                    trans += char_trans
+                    i += 1
             
-            if next_char == '\u1B44': # Adeg-adeg
-                trans = trans[:-1] if trans.endswith('a') else trans
-                annotated_html += f"<ruby>{char}<rt>{trans}</rt></ruby>"
-                i += 2 # Skip adeg-adeg
-                continue
-            
-            elif next_char in ['\u1B35', '\u1B36', '\u1B37', '\u1B38', '\u1B39', '\u1B3E', '\u1B40']: # Vowels
-                vowel = BALI_MAP.get(next_char, 'a')
-                trans = (trans[:-1] if trans.endswith('a') else trans) + vowel
-                # Combine char + vowel in ruby for clarity
-                annotated_html += f"<ruby>{char}{next_char}<rt>{trans}</rt></ruby>"
-                i += 2
-                continue
-            
-            else:
-                # Inherent 'a' remains
-                annotated_html += f"<ruby>{char}<rt>{trans}</rt></ruby>"
-                i += 1
+            # Wrap the whole original word (including adeg-adeg and vowels) in ruby
+            annotated_html += f"<ruby>{part}<rt>{trans}</rt></ruby>"
         else:
-            annotated_html += char
-            i += 1
+            annotated_html += part
             
     return annotated_html
 
@@ -373,7 +413,7 @@ async def explain_text(text: str, context: str = "") -> str:
     try:
         # Using the newer SDK method with a current model
         response = client.models.generate_content(
-            model='gemini-2.0-flash',
+            model='gemini-flash-latest',
             contents=prompt
         )
 
@@ -388,7 +428,7 @@ async def explain_text(text: str, context: str = "") -> str:
         if "429" in error_msg:
             return "<strong>Quota Exceeded (429)</strong><br>Gemini is currently catching its breath. Please wait a minute before trying deep analysis again."
         elif "RESOURCE_EXHAUSTED" in error_msg:
-            return "<strong>Resource Exhausted</strong><br>The free tier limit for Gemini 2.0 Flash has been reached. Try again in a moment."
+            return "<strong>Resource Exhausted</strong><br>The free tier limit for Gemini Flash-latest has been reached. Try again in a moment."
             
         return f"Could not generate explanation: {error_msg}"
 

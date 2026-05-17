@@ -34,6 +34,20 @@ switch ($Browser.ToLower()) {
 if (Test-Path $ManifestSource) {
     Copy-Item -Path $ManifestSource -Destination $TargetManifest -Force
     Write-Host "✅ Prepared manifest.json for $Browser" -ForegroundColor Green
+    
+    # Bundle into a ZIP file
+    $ZipName = "yomu-release-$Browser.zip"
+    $ZipPath = Join-Path $ScriptDir $ZipName
+    
+    # Remove old zip if it exists
+    if (Test-Path $ZipPath) {
+        Remove-Item -Path $ZipPath -Force
+    }
+
+    Write-Host "📦 Bundling files into $ZipName..." -ForegroundColor Cyan
+    Compress-Archive -Path "manifest.json", "background.js", "content.js", "styles.css", "popup.html", "popup.js", "icons" -DestinationPath $ZipPath -Force
+    
+    Write-Host "🎉 Done! $ZipName is ready for upload." -ForegroundColor Green
 } else {
     Write-Host "❌ Source manifest not found: $ManifestSource" -ForegroundColor Red
     exit 1

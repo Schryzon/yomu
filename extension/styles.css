@@ -28,10 +28,10 @@
 
 /* 2. Progress Bar State */
 #yomu-widget.yomu-progress {
-    color: #aaa; /* Grayed-out logo */
-    background: linear-gradient(90deg, #f9f9f9 25%, #e6e6e6 50%, #f9f9f9 75%);
+    color: rgba(248, 250, 252, 0.5); /* Dimmed text */
+    background: linear-gradient(90deg, rgba(15, 23, 42, 0.95) 25%, rgba(30, 41, 59, 0.95) 50%, rgba(15, 23, 42, 0.95) 75%);
     background-size: 200% 100%;
-    animation: loading 1.5s infinite;
+    animation: loading 1.5s infinite linear;
     cursor: default;
     justify-content: center;
 }

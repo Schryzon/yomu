@@ -4,7 +4,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>yōmu! (ヨォム) — AI Reading Layer for Japanese, Chinese, Arabic, Russian & Hindi</title>
+    <title>yōmu! (ヨォム)</title>
     <meta name="description"
         content="yōmu! is a lightweight browser extension and AI reading layer that automatically adds Furigana, Pinyin, and Transliteration to Japanese, Chinese, Arabic, Russian, and Hindi text.">
 
@@ -27,7 +27,7 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;600;800;900&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="/static/style.css">
+    <link rel="stylesheet" href="/static/style.css?v=1.1">
     <link rel="manifest" href="/static/manifest.json">
     <link rel="canonical" href="https://yomu-447937177163.asia-southeast2.run.app/" />
     <meta name="theme-color" content="#020617">
@@ -59,9 +59,12 @@
         <h1>Reading <span id="lang-reel-container"><span id="lang-reel">Japanese</span></span>,<br>made effortless.</h1>
 
 
-        <p class="hero-sub">
-            yōmu! is a lightweight companion that automatically injects <span id="hero-guide" style="color: var(--primary); font-weight: 600;">furigana</span> into any website, helping you bridge
-            the gap between spoken and written <span id="hero-lang" style="color: var(--primary); font-weight: 600;">Japanese</span>.
+        <p class="hero-sub" style="max-width: 800px; margin: 0 auto; margin-bottom: 2rem;">
+            yōmu! is an accessibility and learning augmentation layer. It eliminates the friction of switching tabs to
+            dictionaries by automatically injecting <span id="hero-guide"
+                style="color: var(--primary); font-weight: 600;">furigana</span> directly into the webpage, helping you
+            natively read <span id="hero-lang" style="color: var(--primary); font-weight: 600;">Japanese</span> content
+            without breaking your flow.
         </p>
 
         <div class="demo-container">
@@ -92,22 +95,25 @@
                 <div id="output-box" class="output-box">
                     <em>The result will appear here...</em>
                 </div>
-                <div style="text-align: right; margin-top: 0.5rem; font-size: 0.85rem; opacity: 0.6; font-style: italic;">
-                    Analysis Powered by Gemini 2.0 Flash
+                <div
+                    style="text-align: right; margin-top: 0.5rem; font-size: 0.85rem; opacity: 0.6; font-style: italic;">
+                    Analysis Powered by Gemini Flash-latest
                 </div>
             </div>
         </div>
 
         <div class="store-grid">
             <a href="#" class="store-btn chrome-btn">
-                <img src="https://cdn.simpleicons.org/googlechrome/white" alt="Chrome" style="width: 24px; height: 24px;">
+                <img src="https://cdn.simpleicons.org/googlechrome/white" alt="Chrome"
+                    style="width: 24px; height: 24px;">
                 <div class="btn-text">
                     <span class="small">Available in</span>
                     <span class="large">Chrome Store</span>
                 </div>
             </a>
             <a href="#" class="store-btn firefox-btn">
-                <img src="https://cdn.simpleicons.org/firefoxbrowser/white" alt="Firefox" style="width: 24px; height: 24px;">
+                <img src="https://cdn.simpleicons.org/firefoxbrowser/white" alt="Firefox"
+                    style="width: 24px; height: 24px;">
                 <div class="btn-text">
                     <span class="small">Get it for</span>
                     <span class="large">Firefox</span>
@@ -163,9 +169,11 @@
         <p style="margin-top: 0.5rem; opacity: 0.7;">
             <a href="/terms" style="color: inherit; text-decoration: none;">Terms of Use</a> •
             <a href="/privacy" style="color: inherit; text-decoration: none;">Privacy Policy</a> •
-            Built by <a href="https://github.com/Schryzon" style="color: inherit; text-decoration: underline;">Schryzon</a>
+            Built by <a href="https://github.com/Schryzon"
+                style="color: inherit; text-decoration: underline;">Schryzon</a>
         </p>
-        <p style="margin-top: 1rem; font-weight: 800; letter-spacing: 2px; color: var(--primary); opacity: 0.8;">#JuaraVibeCoding</p>
+        <p style="margin-top: 1rem; font-weight: 800; letter-spacing: 2px; color: var(--primary); opacity: 0.8;">
+            #JuaraVibeCoding</p>
     </footer>
 
 
@@ -211,16 +219,16 @@
         function spinTo(newLangKey) {
             if (newLangKey === currentLang) return;
             const newName = LANGS[newLangKey] || "Languages";
-            
+
             langReel.style.animation = 'none';
             langReel.offsetHeight; // trigger reflow
             langReel.style.animation = 'spin-out 0.3s cubic-bezier(0.45, 0, 0.55, 1) forwards';
-            
+
             setTimeout(() => {
                 langReel.textContent = newName;
                 heroGuide.textContent = GUIDES[newLangKey] || "furigana";
                 heroLang.textContent = newName;
-                
+
                 langReel.style.animation = 'spin-in 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards';
                 currentLang = newLangKey;
             }, 300);
@@ -246,9 +254,9 @@
                 const response = await fetch('/api/annotate', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ 
+                    body: JSON.stringify({
                         text: text,
-                        target_lang: langSelect.value 
+                        target_lang: langSelect.value
                     })
                 });
 
@@ -256,7 +264,7 @@
 
                 const data = await response.json();
                 output.innerHTML = data.annotated_html;
-                
+
                 const finalLang = langSelect.value === 'auto' ? detectLanguage(text) : langSelect.value;
                 spinTo(finalLang);
 
@@ -294,14 +302,14 @@
         function createStream() {
             const stream = document.createElement('div');
             stream.className = 'ambient-stream';
-            
+
             let content = "";
             const streamLength = 10 + Math.floor(Math.random() * 20);
-            for(let i=0; i<streamLength; i++) {
+            for (let i = 0; i < streamLength; i++) {
                 content += VOCABULARY[Math.floor(Math.random() * VOCABULARY.length)] + "\n";
             }
             stream.innerText = content;
-            
+
             // Randomize position and animation (Matrix Rain)
             const isMobile = window.innerWidth < 768;
             const duration = (isMobile ? 10 : 15) + Math.random() * 35;
@@ -309,7 +317,7 @@
             const sizeBase = isMobile ? 0.7 : 1.0;
             const size = sizeBase + Math.random() * (isMobile ? 0.6 : 1.2);
             const opacity = 0.4 + Math.random() * 0.6;
-            
+
             stream.style.setProperty('--duration', `${duration}s`);
             stream.style.setProperty('--size', `${size}rem`);
             stream.style.setProperty('--opacity', `${opacity}`);
@@ -320,22 +328,95 @@
 
         // Create high-density initial streams
         const streamCount = Math.floor(window.innerWidth / 30); // Higher density
-        for(let i=0; i<streamCount; i++) {
+        for (let i = 0; i < streamCount; i++) {
             createStream();
         }
 
         btn.addEventListener('click', annotate);
         window.addEventListener('DOMContentLoaded', () => {
             annotate();
-            
+
             // Register PWA Service Worker
             if ('serviceWorker' in navigator) {
                 navigator.serviceWorker.register('/static/sw.js')
                     .then(reg => console.log('yōmu! PWA Service Worker active'))
                     .catch(err => console.log('SW registration failed', err));
             }
+        }); // <-- RESTORED MISSING CLOSURE HERE
+
+        // --- Deep Analysis Tooltip Logic ---
+        const tooltip = document.createElement('div');
+        tooltip.id = 'yomu-tooltip';
+        tooltip.style.display = 'none';
+        document.body.appendChild(tooltip);
+
+        function sanitizeHTML(str) {
+            const temp = document.createElement('div');
+            temp.textContent = str;
+            let sanitized = temp.innerHTML;
+            return sanitized
+                .replace(/&lt;br&gt;/g, '<br>')
+                .replace(/&lt;b&gt;/g, '<b>')
+                .replace(/&lt;\/b&gt;/g, '</b>')
+                .replace(/&lt;strong&gt;/g, '<strong>')
+                .replace(/&lt;\/strong&gt;/g, '</strong>')
+                .replace(/&lt;i&gt;/g, '<i>')
+                .replace(/&lt;\/i&gt;/g, '</i>')
+                .replace(/&lt;em&gt;/g, '<em>')
+                .replace(/&lt;\/em&gt;/g, '</em>');
+        }
+
+        output.addEventListener('click', async (e) => {
+            const rubyNode = e.target.closest('ruby');
+            if (!rubyNode) return;
+
+            let baseText = "";
+            for (let node of rubyNode.childNodes) {
+                if (node.nodeType === Node.TEXT_NODE) {
+                    baseText += node.nodeValue;
+                }
+            }
+            baseText = baseText.trim() || rubyNode.innerText;
+
+            const rect = rubyNode.getBoundingClientRect();
+            tooltip.style.left = `${rect.left + window.scrollX}px`;
+            tooltip.style.top = `${rect.bottom + window.scrollY + 10}px`;
+            tooltip.style.display = 'block';
+            tooltip.innerHTML = '<div style="font-style: italic; opacity: 0.7;">yōmu! is analyzing...</div>';
+
+            try {
+                const response = await fetch('/api/explain', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ 
+                        text: baseText,
+                        context: "yōmu! Web Demo" 
+                    })
+                });
+                const data = await response.json();
+                
+                if (data.status === 'success') {
+                    const safeExplanation = sanitizeHTML(data.explanation);
+                    tooltip.innerHTML = `
+                        <div style="font-weight: bold; color: #818cf8; margin-bottom: 8px; border-bottom: 1px solid rgba(255,255,255,0.1); padding-bottom: 4px;">Deep Analysis</div>
+                        <div style="line-height: 1.6;">${safeExplanation}</div>
+                        <div style="margin-top: 12px; font-size: 0.7rem; opacity: 0.5; text-align: right;">Powered by Gemini Flash-latest</div>
+                    `;
+                } else {
+                    tooltip.innerHTML = '<span style="color: #ef4444;">Analysis failed.</span>';
+                }
+            } catch (err) {
+                tooltip.innerHTML = '<span style="color: #ef4444;">Network error.</span>';
+            }
+        });
+
+        document.addEventListener('click', (e) => {
+            if (!tooltip.contains(e.target) && !e.target.closest('ruby')) {
+                tooltip.style.display = 'none';
+            }
         });
     </script>
 
 </body>
-</html>
+
+</html>

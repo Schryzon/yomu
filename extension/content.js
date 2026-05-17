@@ -15,7 +15,9 @@ document.body.appendChild(tooltip);
 
 
 // Broad Regex for any alphabetic character from any script (u flag required)
-const TARGET_REGEX = /\p{L}/u;
+// Updated to explicitly match Japanese, Chinese, Arabic, Cyrillic, Devanagari, and Balinese scripts.
+// This prevents the widget from auto-appearing on purely Latin/English websites.
+const TARGET_REGEX = /([\u3040-\u309F\u30A0-\u30FF\u4E00-\u9FAF\u0600-\u06FF\u0400-\u04FF\u0900-\u097F\u1B00-\u1B7F])/u;
 
 // Helper to check if node is inside a ruby tag
 function isInsideRuby(node) {
@@ -180,7 +182,7 @@ function showExplanation(text, anchorElement) {
             tooltip.innerHTML = `
                 <div style="font-weight: bold; color: #818cf8; margin-bottom: 8px; border-bottom: 1px solid rgba(255,255,255,0.1); padding-bottom: 4px;">Deep Analysis</div>
                 <div style="line-height: 1.6;">${safeExplanation}</div>
-                <div style="margin-top: 12px; font-size: 0.7rem; opacity: 0.5; text-align: right;">Powered by Gemini 2.0 Flash</div>
+                <div style="margin-top: 12px; font-size: 0.7rem; opacity: 0.5; text-align: right;">Powered by Gemini Flash-latest</div>
             `;
         } else {
             tooltip.innerHTML = '<span style="color: #ef4444;">Analysis currently unavailable.</span>';

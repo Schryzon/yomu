@@ -43,6 +43,18 @@ yōmu! is a real-time linguistic augmentation layer for the web. It dynamically 
 
 ---
 
+## 🏆 Hackathon Impact Value (#JuaraVibeCoding)
+
+**The Problem**: Learning a language with a different script (like Japanese Kanji, Chinese Hanzi, or Arabic) is highly fragmented. Learners often have to switch tabs, copy-paste text into dictionaries, or use heavy translation apps just to figure out how to *pronounce* a word they see in an article or social media post. This constant context-switching breaks focus and slows down real-world learning.
+
+**Target Audience**: Global language learners, students, and digital natives who consume foreign content online (news, Twitter, Instagram web, wikis) but struggle with reading the native script.
+
+**The Solution & Value Proposition**: yōmu! acts as a "reality augmentation layer" for the web. Instead of translating the text away, it *augments* the original text with pronunciation guides in real-time, right inside the DOM. 
+- **Measurable Value**: Eliminates the "lookup friction" entirely. Learners can read articles natively and instantly reveal the phonetic guides (Furigana, Pinyin, Transliteration) and deep grammar analysis only when they get stuck.
+- **Inclusive Access**: Helps remove the barrier of entry for reading complex scripts, making foreign web content accessible to beginners instantly.
+
+---
+
 ## How to Use
 
 ### 🌐 Web Demo
@@ -54,7 +66,7 @@ yōmu! is a real-time linguistic augmentation layer for the web. It dynamically 
 1.  **Activate**: Once installed, navigate to any webpage with foreign script.
 2.  **Detection**: The yōmu! widget will appear in the bottom-right corner when target text is detected.
 3.  **Toggle**: Click the widget to inject pronunciation guides (Furigana, Pinyin, etc.) into the page.
-4.  **Deep Analysis**: Click on any annotated word to open a **Gemini 2.0 Flash** powered tooltip for grammar and meaning breakdown.
+4.  **Deep Analysis**: Click on any annotated word to open a **Gemini Flash-latest** powered tooltip for grammar and meaning breakdown.
 
 ### 📱 Mobile (iOS/Android)
 - **Safari (iOS)**: Use our Safari Web Extension to annotate pages directly in your mobile browser.
@@ -115,7 +127,7 @@ This project is licensed under the **GNU Affero General Public License v3 (AGPL-
 
 ---
 
-**Analysis Powered by Gemini 2.0 Flash**  
+**Analysis Powered by Gemini Flash-latest**  
 Built with ❤️ by Schryzon & contributors for language learners everywhere.
 
 #JuaraVibeCoding

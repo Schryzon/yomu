@@ -68,8 +68,6 @@ async def privacy():
 async def annotate(request: AnnotateRequest):
     """
     Endpoint to receive raw text and return text annotated with HTML ruby tags.
-    Uses Google Gemini 2.0 Flash.
-
     """
     try:
         annotated = await get_real_annotation(request.text, target_lang=request.target_lang)
