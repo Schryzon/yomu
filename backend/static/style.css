@@ -462,7 +462,6 @@ footer {
 
 /* 💠 Smooth Annotation Scale-up */
 .annotated-text ruby {
-    display: inline-block;
     animation: scaleIn 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
     transform-origin: bottom;
 }
@@ -520,14 +519,26 @@ footer {
     to { opacity: 1; transform: translateY(0); }
 }
 
-.output-box ruby {
+.output-box .yomu-word {
     cursor: pointer;
-    transition: background 0.2s, opacity 0.2s;
+    transition: background 0.3s ease, box-shadow 0.3s ease;
     border-radius: 4px;
-    padding: 2px;
+    padding: 2px 4px;
+    margin: 0;
+    display: inline;
 }
 
-.output-box ruby:hover {
-    background: rgba(96, 165, 250, 0.15);
-    opacity: 0.9;
+.output-box ruby {
+    cursor: pointer;
+    transition: background 0.3s ease, box-shadow 0.3s ease;
+    border-radius: 4px;
+}
+
+.output-box .yomu-word:hover, .output-box ruby:hover {
+    background: rgba(96, 165, 250, 0.25);
+    box-shadow: 0 0 8px rgba(96, 165, 250, 0.3);
+}
+
+@keyframes yomu-spin {
+    to { transform: rotate(360deg); }
 }

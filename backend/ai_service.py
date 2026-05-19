@@ -170,26 +170,56 @@ def process_single_text(text: str) -> str:
                 orig = item['orig']
                 hira = item['hira']
                 
+                # Colloquial overrides for common Kanji readings (e.g. 身体 -> からだ instead of しんたい)
+                reading_overrides = {
+                    "身体": "からだ",
+                }
+                if orig in reading_overrides:
+                    hira = reading_overrides[orig]
+                
                 # Double check for Kanji to apply ruby
                 has_kanji = any('\u4e00' <= c <= '\u9faf' for c in orig)
                 if has_kanji and orig != hira:
-                    # Strip okurigana (tense characters) from the ruby tags
-                    prefix = ''
-                    while orig and hira and orig[0] == hira[0] and not ('\u4e00' <= orig[0] <= '\u9faf'):
-                        prefix += orig[0]
-                        orig = orig[1:]
-                        hira = hira[1:]
+                    # Split mixed Kanji/Okurigana to keep Hiragana/Katakana okurigana unannotated
+                    # Example: orig="積み上げ", hira="つみあげ" -> "<ruby>積<rt>つ</rt></ruby>み<ruby>上<rt>あ</rt></ruby>げ"
+                    kanji_pattern = re.compile(r'([\u4e00-\u9faf]+)')
+                    kanji_parts = kanji_pattern.split(orig)
+                    
+                    aligned_html = ""
+                    hira_idx = 0
+                    
+                    for idx, kp in enumerate(kanji_parts):
+                        if not kp:
+                            continue
                         
-                    suffix = ''
-                    while orig and hira and orig[-1] == hira[-1] and not ('\u4e00' <= orig[-1] <= '\u9faf'):
-                        suffix = orig[-1] + suffix
-                        orig = orig[:-1]
-                        hira = hira[:-1]
-                        
-                    if orig:
-                        annotated_html += f"{prefix}<ruby>{orig}<rt>{hira}</rt></ruby>{suffix}"
-                    else:
-                        annotated_html += f"{prefix}{suffix}"
+                        if kanji_pattern.match(kp):
+                            # Kanji block: find the next non-kanji anchor to determine hira slice
+                            next_anchor = kanji_parts[idx+1] if idx + 1 < len(kanji_parts) else None
+                            if next_anchor:
+                                # Lock alignment search window by starting after the minimum reading characters
+                                search_start = hira_idx + len(kp)
+                                next_idx = hira.find(next_anchor, search_start)
+                                if next_idx == -1:
+                                    next_idx = hira.find(next_anchor, hira_idx)
+                                    
+                                if next_idx != -1:
+                                    kanji_hira = hira[hira_idx:next_idx]
+                                    aligned_html += f"<ruby>{kp}<rt>{kanji_hira}</rt></ruby>"
+                                    hira_idx = next_idx
+                                else:
+                                    kanji_hira = hira[hira_idx:]
+                                    aligned_html += f"<ruby>{kp}<rt>{kanji_hira}</rt></ruby>"
+                                    hira_idx = len(hira)
+                            else:
+                                kanji_hira = hira[hira_idx:]
+                                aligned_html += f"<ruby>{kp}<rt>{kanji_hira}</rt></ruby>"
+                                hira_idx = len(hira)
+                        else:
+                            # Okurigana character: append as plain text and advance reading pointer
+                            aligned_html += kp
+                            hira_idx += len(kp)
+                            
+                    annotated_html += f'<span class="yomu-word" data-word="{orig}">{aligned_html}</span>'
                 else:
                     annotated_html += orig
         else:
@@ -236,7 +266,7 @@ def process_chinese_text(text: str) -> str:
         if '\u4e00' <= char <= '\u9fff':
             # Get pinyin for this single character
             py = pinyin(char, style=Style.TONE, errors='default')[0][0]
-            annotated_html += f"<ruby>{char}<rt>{py}</rt></ruby>"
+            annotated_html += f'<span class="yomu-word" data-word="{char}"><ruby>{char}<rt>{py}</rt></ruby></span>'
         else:
             annotated_html += char
                 
@@ -299,7 +329,7 @@ def process_hindi_text(text: str) -> str:
             continue
         if hindi_pattern.match(part):
             trans = "".join(HI_MAP.get(char, char) for char in part)
-            annotated_html += f"<ruby>{part}<rt>{trans}</rt></ruby>"
+            annotated_html += f'<span class="yomu-word" data-word="{part}"><ruby>{part}<rt>{trans}</rt></ruby></span>'
         else:
             annotated_html += part
             
@@ -308,9 +338,10 @@ def process_hindi_text(text: str) -> str:
 def process_russian_text(text: str) -> str:
     """
     Lightweight Russian transliteration (Word-level).
+    Supports standard, supplementary, and all extended Cyrillic Unicode blocks.
     """
     annotated_html = ""
-    russian_pattern = re.compile(r'([\u0400-\u04FF]+)')
+    russian_pattern = re.compile(r'([\u0400-\u04FF\u0500-\u052F\u2DE0-\u2DFF\uA640-\uA69F\u1C80-\u1C8F]+)')
     parts = russian_pattern.split(text)
     
     for part in parts:
@@ -318,7 +349,7 @@ def process_russian_text(text: str) -> str:
             continue
         if russian_pattern.match(part):
             trans = "".join(RU_MAP.get(char, char) for char in part)
-            annotated_html += f"<ruby>{part}<rt>{trans}</rt></ruby>"
+            annotated_html += f'<span class="yomu-word" data-word="{part}"><ruby>{part}<rt>{trans}</rt></ruby></span>'
         else:
             annotated_html += part
             
@@ -337,7 +368,7 @@ def process_arabic_text(text: str) -> str:
             continue
         if arabic_pattern.match(part):
             trans = "".join(AR_MAP.get(char, char) for char in part)
-            annotated_html += f"<ruby>{part}<rt>{trans}</rt></ruby>"
+            annotated_html += f'<span class="yomu-word" data-word="{part}"><ruby>{part}<rt>{trans}</rt></ruby></span>'
         else:
             annotated_html += part
             
@@ -380,7 +411,7 @@ def process_balinese_text(text: str) -> str:
                     i += 1
             
             # Wrap the whole original word (including adeg-adeg and vowels) in ruby
-            annotated_html += f"<ruby>{part}<rt>{trans}</rt></ruby>"
+            annotated_html += f'<span class="yomu-word" data-word="{part}"><ruby>{part}<rt>{trans}</rt></ruby></span>'
         else:
             annotated_html += part
             
@@ -394,19 +425,24 @@ async def explain_text(text: str, context: str = "") -> str:
         return "Gemini API key not configured."
     
     prompt = f"""
-    You are yōmu! (ヨォム), a linguistic AI assistant. 
-    Analyze the following user-provided text within the brackets: 
+    Analyze the following target word/phrase:
     [[ {text} ]]
     
-    Context (if available): "{context}"
+    Surrounding Context (use this to determine the exact meaning and provide previous/next sentence nuance):
+    "{context}"
     
-    Provide a concise explanation for a language learner. 
-    Include:
-    1. Meaning in English.
-    2. Grammar breakdown (if applicable).
-    3. How to use it in a sentence.
+    Provide a direct, highly concise linguistic analysis for a language learner. 
+    Do NOT include any greetings, introductory phrases, or chatty sentences (e.g., do not say "Here is the analysis" or "I am yomu!"). Get straight to the analysis.
     
-    Keep it cinematic, helpful, and very brief (max 100 words).
+    Format the output EXACTLY like this:
+    <strong>Meaning:</strong> [Direct English meaning, using the surrounding context for accuracy]<br>
+    <strong>Grammar:</strong> [Grammar/parts of speech breakdown relative to the context]<br>
+    <strong>Synonyms:</strong> [2-3 relevant synonyms of the target word/phrase in its original script, with parenthesized reading/pronunciation and its rough English meaning. Example: 暴走 (bousou - runaway/out of control)]<br>
+    <strong>Antonyms:</strong> [1-2 relevant antonyms of the target word/phrase in its original script, with parenthesized reading/pronunciation and its rough English meaning, if applicable]<br>
+    <strong>Related Words:</strong> [1-2 other vocabulary words related structurally, conceptually, or sharing semantic roots, with parenthesized reading/pronunciation and their rough English meanings]<br>
+    <strong>Usage Example:</strong> [Short example sentence using the target word/phrase]
+    
+    Keep the total response extremely brief (under 120 words).
     Use ONLY the following HTML tags for formatting: <strong>, <br>, <em>.
     """
     

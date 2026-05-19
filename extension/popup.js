@@ -18,12 +18,20 @@
         });
     });
     
-    statusText.innerHTML = '<div class="status-dot"></div> Scanning for new text...';
+    const setStatus = (text) => {
+        statusText.textContent = '';
+        const dot = document.createElement('div');
+        dot.className = 'status-dot';
+        statusText.appendChild(dot);
+        statusText.appendChild(document.createTextNode(' ' + text));
+    };
+
+    setStatus('Scanning for new text...');
     
     setTimeout(() => {
         scanBtn.disabled = false;
         scanBtn.innerText = 'Re-scan Page';
-        statusText.innerHTML = '<div class="status-dot"></div> Ready to enhance your reading.';
+        setStatus('Ready to enhance your reading.');
     }, 2000);
 });
 

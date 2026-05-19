@@ -44,8 +44,25 @@ if (Test-Path $ManifestSource) {
         Remove-Item -Path $ZipPath -Force
     }
 
-    Write-Host "📦 Bundling files into $ZipName..." -ForegroundColor Cyan
-    Compress-Archive -Path "manifest.json", "background.js", "content.js", "styles.css", "popup.html", "popup.js", "icons" -DestinationPath $ZipPath -Force
+    Write-Host "📦 Bundling files into $ZipName using Python (to resolve Windows backslash separator bugs)..." -ForegroundColor Cyan
+    python312 -c @"
+import zipfile, os
+zip_path = r'$ZipPath'
+script_dir = r'$ScriptDir'
+files = ['manifest.json', 'background.js', 'content.js', 'styles.css', 'popup.html', 'popup.js']
+with zipfile.ZipFile(zip_path, 'w', zipfile.ZIP_DEFLATED) as zipf:
+    for f in files:
+        fpath = os.path.join(script_dir, f)
+        if os.path.exists(fpath):
+            zipf.write(fpath, f)
+    icons_dir = os.path.join(script_dir, 'icons')
+    if os.path.exists(icons_dir):
+        for root, _, filenames in os.walk(icons_dir):
+            for filename in filenames:
+                fpath = os.path.join(root, filename)
+                rel = os.path.relpath(fpath, script_dir)
+                zipf.write(fpath, rel.replace('\\', '/'))
+"@
     
     Write-Host "🎉 Done! $ZipName is ready for upload." -ForegroundColor Green
 } else {

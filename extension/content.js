@@ -14,10 +14,10 @@ document.body.appendChild(widget);
 document.body.appendChild(tooltip);
 
 
-// Broad Regex for any alphabetic character from any script (u flag required)
-// Updated to explicitly match Japanese, Chinese, Arabic, Cyrillic, Devanagari, and Balinese scripts.
-// This prevents the widget from auto-appearing on purely Latin/English websites.
-const TARGET_REGEX = /([\u3040-\u309F\u30A0-\u30FF\u4E00-\u9FAF\u0600-\u06FF\u0400-\u04FF\u0900-\u097F\u1B00-\u1B7F])/u;
+// Broad Regex for any alphabetic character from any target script (u flag required)
+// Uses modern Unicode Property Escapes to completely and robustly match standard & extended blocks
+// for Japanese (Hiragana/Katakana/Han), Chinese (Han), Arabic, Cyrillic (Russian), Devanagari (Hindi), and Balinese.
+const TARGET_REGEX = /([\p{scx=Hiragana}\p{scx=Katakana}\p{scx=Han}\p{scx=Arabic}\p{scx=Cyrillic}\p{scx=Devanagari}\p{scx=Balinese}])/u;
 
 // Helper to check if node is inside a ruby tag
 function isInsideRuby(node) {
@@ -29,6 +29,16 @@ function isInsideRuby(node) {
         current = current.parentNode;
     }
     return false;
+}
+
+// Helper to safely parse and set HTML via DOMParser (bypassing innerHTML warnings)
+function setSafeHTML(element, htmlString) {
+    const parser = new DOMParser();
+    const doc = parser.parseFromString(htmlString, 'text/html');
+    element.textContent = '';
+    while (doc.body.firstChild) {
+        element.appendChild(doc.body.firstChild);
+    }
 }
 
 // 1. Dynamic Detection
@@ -87,12 +97,16 @@ function startProcessing(nodes) {
                     if (annotatedText && annotatedText.includes('<ruby>')) {
                         const span = document.createElement('span');
                         span.className = 'yomu-annotated';
-                        span.innerHTML = annotatedText;
+                        setSafeHTML(span, annotatedText);
 
-                        // Add click listener for Deep Analysis
+                        // Add click listener for Deep Analysis on specific words
                         span.addEventListener('click', (e) => {
-                            e.stopPropagation();
-                            showExplanation(node.nodeValue, span);
+                            const targetNode = e.target.closest('.yomu-word') || e.target.closest('ruby');
+                            if (targetNode) {
+                                e.stopPropagation();
+                                const clickedWord = targetNode.getAttribute('data-word') || targetNode.textContent.trim();
+                                showExplanation(clickedWord, targetNode);
+                            }
                         });
 
                         if (node.parentNode) {
@@ -148,13 +162,20 @@ widget.addEventListener('click', (e) => {
 });
 
 // 4. Deep Analysis (Gemini Integration)
+function escapeHTML(str) {
+    return str
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#039;');
+}
+
 function sanitizeHTML(str) {
-    const temp = document.createElement('div');
-    temp.textContent = str;
-    let sanitized = temp.innerHTML;
+    const escaped = escapeHTML(str);
     
     // Allow only specific safe formatting tags
-    return sanitized
+    return escaped
         .replace(/&lt;br&gt;/g, '<br>')
         .replace(/&lt;b&gt;/g, '<b>')
         .replace(/&lt;\/b&gt;/g, '</b>')
@@ -171,21 +192,39 @@ function showExplanation(text, anchorElement) {
     tooltip.style.left = `${rect.left + window.scrollX}px`;
     tooltip.style.top = `${rect.bottom + window.scrollY + 10}px`;
     tooltip.style.display = 'block';
-    tooltip.innerHTML = '<div style="font-style: italic; opacity: 0.7;">yōmu! is analyzing...</div>';
+    setSafeHTML(tooltip, `
+        <div style="display: flex; align-items: center; gap: 12px; padding: 4px 0;">
+            <div style="
+                width: 18px;
+                height: 18px;
+                border: 2px solid rgba(129, 140, 248, 0.15);
+                border-top-color: #818cf8;
+                border-radius: 50%;
+                animation: yomu-spin 0.8s linear infinite;
+                flex-shrink: 0;
+            "></div>
+            <div style="font-size: 0.85rem; opacity: 0.85; font-weight: 700; color: #818cf8; letter-spacing: 0.5px;">yōmu! is analyzing...</div>
+        </div>
+    `);
+
+    // Extract surrounding paragraph/sentence context for the linguistic engine
+    const parentBlock = anchorElement.closest('p, div, li, td, h1, h2, h3, h4, h5, h6, blockquote') || anchorElement.parentNode;
+    const surroundingContext = parentBlock ? parentBlock.textContent.trim().substring(0, 500) : "";
+    const combinedContext = `[Page Title: ${document.title}] Surrounding text: "${surroundingContext}"`;
 
     chrome.runtime.sendMessage({
         action: 'explain_text',
-        payload: { text: text, context: document.title }
+        payload: { text: text, context: combinedContext }
     }, (response) => {
         if (response && response.status === 'success') {
             const safeExplanation = sanitizeHTML(response.data.explanation);
-            tooltip.innerHTML = `
+            setSafeHTML(tooltip, `
                 <div style="font-weight: bold; color: #818cf8; margin-bottom: 8px; border-bottom: 1px solid rgba(255,255,255,0.1); padding-bottom: 4px;">Deep Analysis</div>
                 <div style="line-height: 1.6;">${safeExplanation}</div>
                 <div style="margin-top: 12px; font-size: 0.7rem; opacity: 0.5; text-align: right;">Powered by Gemini Flash-latest</div>
-            `;
+            `);
         } else {
-            tooltip.innerHTML = '<span style="color: #ef4444;">Analysis currently unavailable.</span>';
+            setSafeHTML(tooltip, '<span style="color: #ef4444;">Analysis currently unavailable.</span>');
         }
     });
 }

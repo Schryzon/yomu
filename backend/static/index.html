@@ -207,12 +207,12 @@
         let currentLang = "ja";
 
         function detectLanguage(text) {
-            if (/[\u3040-\u309F\u30A0-\u30FF]/.test(text)) return "ja";
-            if (/[\u4E00-\u9FAF]/.test(text)) return "zh";
-            if (/[\u0600-\u06FF]/.test(text)) return "ar";
-            if (/[\u0400-\u04FF]/.test(text)) return "ru";
-            if (/[\u0900-\u097F]/.test(text)) return "hi";
-            if (/[\u1B00-\u1B7F]/.test(text)) return "ban";
+            if (/[\p{scx=Hiragana}\p{scx=Katakana}]/u.test(text)) return "ja";
+            if (/[\p{scx=Han}]/u.test(text)) return "zh";
+            if (/[\p{scx=Arabic}]/u.test(text)) return "ar";
+            if (/[\p{scx=Cyrillic}]/u.test(text)) return "ru";
+            if (/[\p{scx=Devanagari}]/u.test(text)) return "hi";
+            if (/[\p{scx=Balinese}]/u.test(text)) return "ban";
             return "ja";
         }
 
@@ -367,22 +367,41 @@
         }
 
         output.addEventListener('click', async (e) => {
-            const rubyNode = e.target.closest('ruby');
-            if (!rubyNode) return;
+            const targetNode = e.target.closest('.yomu-word') || e.target.closest('ruby');
+            if (!targetNode) return;
 
-            let baseText = "";
-            for (let node of rubyNode.childNodes) {
-                if (node.nodeType === Node.TEXT_NODE) {
-                    baseText += node.nodeValue;
+            let baseText = targetNode.getAttribute('data-word');
+            if (!baseText) {
+                baseText = "";
+                for (let node of targetNode.childNodes) {
+                    if (node.nodeType === Node.TEXT_NODE) {
+                        baseText += node.nodeValue;
+                    }
                 }
+                baseText = baseText.trim() || targetNode.innerText;
             }
-            baseText = baseText.trim() || rubyNode.innerText;
 
-            const rect = rubyNode.getBoundingClientRect();
+            const rect = targetNode.getBoundingClientRect();
             tooltip.style.left = `${rect.left + window.scrollX}px`;
             tooltip.style.top = `${rect.bottom + window.scrollY + 10}px`;
             tooltip.style.display = 'block';
-            tooltip.innerHTML = '<div style="font-style: italic; opacity: 0.7;">yōmu! is analyzing...</div>';
+            tooltip.innerHTML = `
+                <div style="display: flex; align-items: center; gap: 12px; padding: 4px 0;">
+                    <div style="
+                        width: 18px;
+                        height: 18px;
+                        border: 2px solid rgba(129, 140, 248, 0.15);
+                        border-top-color: #818cf8;
+                        border-radius: 50%;
+                        animation: yomu-spin 0.8s linear infinite;
+                        flex-shrink: 0;
+                    "></div>
+                    <div style="font-size: 0.85rem; opacity: 0.85; font-weight: 700; color: #818cf8; letter-spacing: 0.5px;">yōmu! is analyzing...</div>
+                </div>
+            `;
+
+            const surroundingContext = output.textContent.trim().substring(0, 500);
+            const combinedContext = `[Web Demo] Surrounding text: "${surroundingContext}"`;
 
             try {
                 const response = await fetch('/api/explain', {
@@ -390,7 +409,7 @@
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ 
                         text: baseText,
-                        context: "yōmu! Web Demo" 
+                        context: combinedContext 
                     })
                 });
                 const data = await response.json();
