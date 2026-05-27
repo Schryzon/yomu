@@ -15,6 +15,7 @@ deploy.*
 # Python cache
 # Chat logs
 chat-logs.txt
+test_*
 
 # Virtual environments
 venv/
@@ -36,5 +37,4 @@ __pycache__/
 
 # Logs
 *.log
-test_output.json
 models.txt

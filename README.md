@@ -36,8 +36,10 @@ yōmu! is a real-time linguistic augmentation layer for the web. It dynamically 
 - **Russian (Transliteration)**: Adds phonetic Latin guides above Cyrillic text.
 - **Hindi (Transliteration)**: Provides phonetic guides for Devanagari script.
 
+- **Deep Analysis in Native Language**: Set your native language (English, Indonesian, Spanish, French, etc.) and get grammar/vocabulary breakdowns explained directly in your mother tongue using Gemini Flash.
 - **Smart Detection**: Automatically identifies the language of the page or specific text blocks.
-- **Premium UI**: A glassmorphic, non-intrusive floating widget that provides real-time feedback.
+- **Premium UI & Dynamic Contrast**: A glassmorphic, non-intrusive floating widget that dynamically adapts to light/dark page themes for maximum visibility.
+- **Opt-in & Secure**: Toggle the extension on/off at will. Off by default on untrusted pages, with strict DOM sanitization ensuring zero XSS vulnerabilities.
 - **Mobile Ready**: Responsive landing page with PWA support and a strategy for mobile browser extensions.
 - **High Performance**: Powered by a Python FastAPI backend deployed on Google Cloud Run for low latency.
 
@@ -71,6 +73,15 @@ yōmu! is a real-time linguistic augmentation layer for the web. It dynamically 
 ### 📱 Mobile (iOS/Android)
 - **Safari (iOS)**: Use our Safari Web Extension to annotate pages directly in your mobile browser.
 - **PWA**: Add the Web Demo to your Home Screen to use it as a standalone reading aid app.
+
+---
+
+## Security & Privacy First
+
+We take data security seriously:
+- **Strict DOM Sanitization**: All incoming HTML from the linguistic AI is rigorously stripped of malicious tags and attributes (`onerror`, `onload`, etc.) before entering your browser to prevent Prompt Injection & XSS.
+- **Explicit Opt-in**: The extension can be toggled on/off. When disabled, no text is sent to the backend.
+- **Protected API**: The backend enforces payload size limits and custom headers to prevent API abuse and token draining.
 
 ---
 

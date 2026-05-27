@@ -207,8 +207,16 @@
         let currentLang = "ja";
 
         function detectLanguage(text) {
-            if (/[\p{scx=Hiragana}\p{scx=Katakana}]/u.test(text)) return "ja";
-            if (/[\p{scx=Han}]/u.test(text)) return "zh";
+            const has_kana = /[\p{scx=Hiragana}\p{scx=Katakana}]/u.test(text);
+            const has_han = /[\p{scx=Han}]/u.test(text);
+
+            // Kana present → definitely Japanese
+            if (has_kana) return "ja";
+
+            // Han only — no kana context. Could be Chinese OR Japanese kanji.
+            // Default to Japanese (primary use case). Users can override via dropdown.
+            if (has_han) return "ja";
+
             if (/[\p{scx=Arabic}]/u.test(text)) return "ar";
             if (/[\p{scx=Cyrillic}]/u.test(text)) return "ru";
             if (/[\p{scx=Devanagari}]/u.test(text)) return "hi";
@@ -253,7 +261,10 @@
             try {
                 const response = await fetch('/api/annotate', {
                     method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-Yomu-Client': 'yomu-ext-v1'
+                    },
                     body: JSON.stringify({
                         text: text,
                         target_lang: langSelect.value
@@ -303,20 +314,19 @@
             const stream = document.createElement('div');
             stream.className = 'ambient-stream';
 
-            let content = "";
-            const streamLength = 10 + Math.floor(Math.random() * 20);
-            for (let i = 0; i < streamLength; i++) {
-                content += VOCABULARY[Math.floor(Math.random() * VOCABULARY.length)] + "\n";
-            }
-            stream.innerText = content;
+            // Pick a single word
+            stream.innerText = VOCABULARY[Math.floor(Math.random() * VOCABULARY.length)];
 
-            // Randomize position and animation (Matrix Rain)
+            // Randomize position and animation
             const isMobile = window.innerWidth < 768;
-            const duration = (isMobile ? 10 : 15) + Math.random() * 35;
-            const delay = -Math.random() * 50;
-            const sizeBase = isMobile ? 0.7 : 1.0;
-            const size = sizeBase + Math.random() * (isMobile ? 0.6 : 1.2);
-            const opacity = 0.4 + Math.random() * 0.6;
+            const duration = (isMobile ? 15 : 20) + Math.random() * 40; // Slower fall for single words
+            const delay = -Math.random() * 60;
+            const sizeBase = isMobile ? 0.8 : 1.2;
+            const size = sizeBase + Math.random() * (isMobile ? 0.8 : 1.5); // More varied sizes
+            const opacity = 0.2 + Math.random() * 0.8;
+
+            stream.style.position = 'absolute';
+            stream.style.left = `${Math.random() * 100}vw`;
 
             stream.style.setProperty('--duration', `${duration}s`);
             stream.style.setProperty('--size', `${size}rem`);
@@ -326,8 +336,8 @@
             ambientContainer.appendChild(stream);
         }
 
-        // Create high-density initial streams
-        const streamCount = Math.floor(window.innerWidth / 30); // Higher density
+        // Lower density to prevent animation popping (poofing) and visual clutter
+        const streamCount = Math.min(25, Math.floor(window.innerWidth / 50));
         for (let i = 0; i < streamCount; i++) {
             createStream();
         }
@@ -406,14 +416,17 @@
             try {
                 const response = await fetch('/api/explain', {
                     method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ 
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-Yomu-Client': 'yomu-ext-v1'
+                    },
+                    body: JSON.stringify({
                         text: baseText,
-                        context: combinedContext 
+                        context: combinedContext
                     })
                 });
                 const data = await response.json();
-                
+
                 if (data.status === 'success') {
                     const safeExplanation = sanitizeHTML(data.explanation);
                     tooltip.innerHTML = `

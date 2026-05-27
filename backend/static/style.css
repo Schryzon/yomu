@@ -61,6 +61,7 @@ body {
 
 
 .ambient-stream {
+    position: absolute;
     writing-mode: vertical-rl;
     text-orientation: upright;
     font-size: var(--size, 1.2rem);
@@ -75,8 +76,8 @@ body {
 }
 
 @keyframes stream-scroll {
-    0% { transform: translateY(-100%); }
-    100% { transform: translateY(100%); }
+    0% { top: -50%; }
+    100% { top: 150%; }
 }
 
 

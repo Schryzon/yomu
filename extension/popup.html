@@ -74,6 +74,67 @@
             opacity: 0.4;
             text-align: center;
         }
+        
+        /* Toggle Switch Styles */
+        .setting-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+            font-size: 0.9rem;
+        }
+        .switch {
+            position: relative;
+            display: inline-block;
+            width: 44px;
+            height: 24px;
+        }
+        .switch input {
+            opacity: 0;
+            width: 0;
+            height: 0;
+        }
+        .slider {
+            position: absolute;
+            cursor: pointer;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background-color: rgba(255, 255, 255, 0.1);
+            transition: .4s;
+            border-radius: 24px;
+        }
+        .slider:before {
+            position: absolute;
+            content: "";
+            height: 18px;
+            width: 18px;
+            left: 3px;
+            bottom: 3px;
+            background-color: white;
+            transition: .4s;
+            border-radius: 50%;
+        }
+        input:checked + .slider {
+            background-color: #818cf8;
+        }
+        input:checked + .slider:before {
+            transform: translateX(20px);
+        }
+
+        /* Dropdown Styles */
+        select {
+            background: rgba(255,255,255,0.05);
+            color: white;
+            border: 1px solid rgba(255,255,255,0.1);
+            padding: 6px 10px;
+            border-radius: 8px;
+            font-family: inherit;
+            outline: none;
+            cursor: pointer;
+        }
+        select option {
+            background: #1e1b4b;
+            color: white;
+        }
     </style>
 </head>
 <body>
@@ -86,8 +147,33 @@
         Ready to enhance your reading.
     </div>
 
-    <div class="section-title">Actions</div>
-    <div class="control-group">
+    <div class="section-title" style="margin-bottom: 10px; font-weight: bold; font-size: 0.9rem; opacity: 0.8;">Settings</div>
+    
+    <div class="setting-row">
+        <span>Enable Yomu!</span>
+        <label class="switch">
+            <input type="checkbox" id="yomu-toggle" checked>
+            <span class="slider"></span>
+        </label>
+    </div>
+
+    <div class="setting-row">
+        <span>Explanation Language</span>
+        <select id="native-lang">
+            <option value="English">English</option>
+            <option value="Indonesian">Indonesian</option>
+            <option value="Spanish">Spanish</option>
+            <option value="French">French</option>
+            <option value="German">German</option>
+            <option value="Russian">Russian</option>
+            <option value="Japanese">Japanese</option>
+            <option value="Chinese">Chinese</option>
+            <option value="Arabic">Arabic</option>
+        </select>
+    </div>
+
+    <div class="section-title" style="margin-top: 20px; margin-bottom: 10px; font-weight: bold; font-size: 0.9rem; opacity: 0.8;">Actions</div>
+    <div class="control-group" style="display: flex; flex-direction: column; gap: 10px;">
         <button class="btn" id="scan-now">Re-scan Page</button>
         <button class="btn" style="background: rgba(255,255,255,0.1); color: white;" id="open-demo">Open Web Demo</button>
     </div>

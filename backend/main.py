@@ -1,13 +1,10 @@
-# yōmu! API v1.0.1 - Production Ready
-from fastapi import FastAPI, HTTPException
-
+from fastapi import FastAPI, HTTPException, Header
 from fastapi.staticfiles import StaticFiles
 from fastapi.responses import FileResponse
 from fastapi.middleware.cors import CORSMiddleware
 import os
 
-
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
 from ai_service import get_real_annotation, setup_ai, explain_text
 
 
@@ -17,7 +14,7 @@ app = FastAPI(title="yōmu! API")
 app.add_middleware(
     CORSMiddleware,
     allow_origins=["*"], # Allow all for the hackathon, or specify chrome-extension:// IDs
-    allow_credentials=True,
+    allow_credentials=False,
     allow_methods=["*"],
     allow_headers=["*"],
 )
@@ -34,12 +31,13 @@ async def startup_event():
     setup_ai()
 
 class AnnotateRequest(BaseModel):
-    text: str
-    target_lang: str = "auto"
+    text: str = Field(..., max_length=5000)
+    target_lang: str = Field(default="auto", max_length=50)
 
 class ExplainRequest(BaseModel):
-    text: str
-    context: str = ""
+    text: str = Field(..., max_length=500)
+    context: str = Field(default="", max_length=5000)
+    native_lang: str = Field(default="English", max_length=50)
 
 class AnnotationResponse(BaseModel):
     annotated_html: str
@@ -64,11 +62,13 @@ async def privacy():
     return FileResponse(privacy_file)
 
 @app.post("/api/annotate")
-
-async def annotate(request: AnnotateRequest):
+async def annotate(request: AnnotateRequest, x_yomu_client: str = Header(None)):
     """
     Endpoint to receive raw text and return text annotated with HTML ruby tags.
     """
+    if x_yomu_client != "yomu-ext-v1":
+        raise HTTPException(status_code=403, detail="Unauthorized client")
+        
     try:
         annotated = await get_real_annotation(request.text, target_lang=request.target_lang)
         return {"status": "success", "annotated_html": annotated}
@@ -78,12 +78,15 @@ async def annotate(request: AnnotateRequest):
         raise HTTPException(status_code=500, detail="Internal Annotation Service Error")
 
 @app.post("/api/explain")
-async def explain(request: ExplainRequest):
+async def explain(request: ExplainRequest, x_yomu_client: str = Header(None)):
     """
     Gemini-powered linguistic explanation.
     """
+    if x_yomu_client != "yomu-ext-v1":
+        raise HTTPException(status_code=403, detail="Unauthorized client")
+        
     try:
-        explanation = await explain_text(request.text, request.context)
+        explanation = await explain_text(request.text, request.context, request.native_lang)
 
         return {"status": "success", "explanation": explanation}
     except Exception:

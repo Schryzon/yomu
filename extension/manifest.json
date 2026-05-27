@@ -3,6 +3,17 @@
   "name": "yōmu!",
   "version": "1.0",
   "description": "Real-Time Reading Layer for the Web.",
+  "browser_specific_settings": {
+    "gecko": {
+      "id": "yomu@juaravibecoding.example.com",
+      "strict_min_version": "109.0",
+      "data_collection_permissions": {
+        "required": [
+          "none"
+        ]
+      }
+    }
+  },
   "permissions": [
     "activeTab",
     "scripting"
@@ -11,7 +22,7 @@
     "<all_urls>"
   ],
   "background": {
-    "service_worker": "background.js"
+    "scripts": ["background.js"]
   },
   "content_scripts": [
     {

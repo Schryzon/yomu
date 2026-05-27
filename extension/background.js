@@ -7,10 +7,13 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
     if (request.action === 'process_text') {
         fetch(`${BASE_URL}/annotate`, {
             method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
+            headers: { 
+                'Content-Type': 'application/json',
+                'X-Yomu-Client': 'yomu-ext-v1'
+            },
             body: JSON.stringify({
                 text: request.payload.text,
-                target_lang: 'auto'
+                target_lang: request.payload.page_lang || 'auto'
             })
         })
         .then(response => response.json())
@@ -22,10 +25,14 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
     if (request.action === 'explain_text') {
         fetch(`${BASE_URL}/explain`, {
             method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
+            headers: { 
+                'Content-Type': 'application/json',
+                'X-Yomu-Client': 'yomu-ext-v1'
+            },
             body: JSON.stringify({
                 text: request.payload.text,
-                context: request.payload.context
+                context: request.payload.context,
+                native_lang: request.payload.native_lang || "English"
             })
         })
         .then(response => response.json())

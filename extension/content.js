@@ -31,6 +31,33 @@ function isInsideRuby(node) {
     return false;
 }
 
+// Page-level language detection (multi-signal approach)
+function detect_page_language() {
+    // Signal 1: HTML lang attribute (strongest — set by the page itself)
+    const html_lang = document.documentElement.lang?.toLowerCase() || '';
+    if (html_lang.startsWith('ja')) return 'ja';
+    if (html_lang.startsWith('zh')) return 'zh';
+    if (html_lang.startsWith('ar')) return 'ar';
+    if (html_lang.startsWith('ru')) return 'ru';
+    if (html_lang.startsWith('hi')) return 'hi';
+
+    // Signal 2: URL heuristics (e.g. ja.wikipedia.org, zh.m.wikipedia.org)
+    const hostname = window.location.hostname;
+    if (hostname.startsWith('ja.')) return 'ja';
+    if (hostname.startsWith('zh.')) return 'zh';
+    if (hostname.startsWith('ar.')) return 'ar';
+    if (hostname.startsWith('ru.')) return 'ru';
+    if (hostname.startsWith('hi.')) return 'hi';
+
+    // Signal 3: Page-wide kana scan — if kana exists anywhere on the page, it's Japanese
+    const body_text = document.body.innerText.substring(0, 5000);
+    const has_kana = /[\u3040-\u309F\u30A0-\u30FF]/.test(body_text);
+    const has_han = /[\u4E00-\u9FFF]/.test(body_text);
+    if (has_kana && has_han) return 'ja';
+
+    return 'auto'; // truly ambiguous — let backend decide
+}
+
 // Helper to safely parse and set HTML via DOMParser (bypassing innerHTML warnings)
 function setSafeHTML(element, htmlString) {
     const parser = new DOMParser();
@@ -39,6 +66,61 @@ function setSafeHTML(element, htmlString) {
     while (doc.body.firstChild) {
         element.appendChild(doc.body.firstChild);
     }
+}
+
+// Strict DOM Sanitizer for LLM outputs to prevent XSS
+function setSafeAnnotationHTML(element, htmlString) {
+    const ALLOWED_TAGS = ['ruby', 'rt', 'span', 'b', 'i', 'strong', 'em', 'br'];
+    
+    function sanitizeNode(node) {
+        if (node.nodeType === Node.TEXT_NODE) {
+            return document.createTextNode(node.textContent);
+        }
+        
+        if (node.nodeType !== Node.ELEMENT_NODE) {
+            return null;
+        }
+        
+        const tagName = node.tagName.toLowerCase();
+        if (!ALLOWED_TAGS.includes(tagName)) {
+            // Instead of dropping it entirely, we could just extract its text, 
+            // but for security it's safer to just return a text node of its content
+            return document.createTextNode(node.textContent);
+        }
+        
+        const cleanNode = document.createElement(tagName);
+        
+        // Only allow specific classes, drop all other attributes
+        if (tagName === 'span' && node.hasAttribute('class')) {
+            const classes = node.getAttribute('class');
+            if (classes.includes('yomu-word')) {
+                cleanNode.className = 'yomu-word';
+                if (node.hasAttribute('data-word')) {
+                    cleanNode.setAttribute('data-word', node.getAttribute('data-word'));
+                }
+            }
+        }
+        
+        node.childNodes.forEach(child => {
+            const cleanChild = sanitizeNode(child);
+            if (cleanChild) {
+                cleanNode.appendChild(cleanChild);
+            }
+        });
+        
+        return cleanNode;
+    }
+
+    const parser = new DOMParser();
+    const doc = parser.parseFromString(htmlString, 'text/html');
+    element.textContent = '';
+    
+    doc.body.childNodes.forEach(child => {
+        const safeChild = sanitizeNode(child);
+        if (safeChild) {
+            element.appendChild(safeChild);
+        }
+    });
 }
 
 // 1. Dynamic Detection
@@ -82,9 +164,11 @@ function startProcessing(nodes) {
     const DELIMITER = "\n|||\n";
     const batchText = nodes.map(n => n.nodeValue).join(DELIMITER);
 
+    const page_lang = detect_page_language();
+
     chrome.runtime.sendMessage({
         action: 'process_text',
-        payload: { text: batchText }
+        payload: { text: batchText, page_lang: page_lang }
     }, (response) => {
         if (response && response.status === 'success' && response.data.annotated_html) {
             // Split the response back into array
@@ -97,7 +181,7 @@ function startProcessing(nodes) {
                     if (annotatedText && annotatedText.includes('<ruby>')) {
                         const span = document.createElement('span');
                         span.className = 'yomu-annotated';
-                        setSafeHTML(span, annotatedText);
+                        setSafeAnnotationHTML(span, annotatedText);
 
                         // Add click listener for Deep Analysis on specific words
                         span.addEventListener('click', (e) => {
@@ -212,20 +296,22 @@ function showExplanation(text, anchorElement) {
     const surroundingContext = parentBlock ? parentBlock.textContent.trim().substring(0, 500) : "";
     const combinedContext = `[Page Title: ${document.title}] Surrounding text: "${surroundingContext}"`;
 
-    chrome.runtime.sendMessage({
-        action: 'explain_text',
-        payload: { text: text, context: combinedContext }
-    }, (response) => {
-        if (response && response.status === 'success') {
-            const safeExplanation = sanitizeHTML(response.data.explanation);
-            setSafeHTML(tooltip, `
-                <div style="font-weight: bold; color: #818cf8; margin-bottom: 8px; border-bottom: 1px solid rgba(255,255,255,0.1); padding-bottom: 4px;">Deep Analysis</div>
-                <div style="line-height: 1.6;">${safeExplanation}</div>
-                <div style="margin-top: 12px; font-size: 0.7rem; opacity: 0.5; text-align: right;">Powered by Gemini Flash-latest</div>
-            `);
-        } else {
-            setSafeHTML(tooltip, '<span style="color: #ef4444;">Analysis currently unavailable.</span>');
-        }
+    chrome.storage.sync.get({ nativeLang: 'English' }, (result) => {
+        chrome.runtime.sendMessage({
+            action: 'explain_text',
+            payload: { text: text, context: combinedContext, native_lang: result.nativeLang }
+        }, (response) => {
+            if (response && response.status === 'success') {
+                const safeExplanation = sanitizeHTML(response.data.explanation);
+                setSafeHTML(tooltip, `
+                    <div style="font-weight: bold; color: #818cf8; margin-bottom: 8px; border-bottom: 1px solid rgba(255,255,255,0.1); padding-bottom: 4px;">Deep Analysis (${result.nativeLang})</div>
+                    <div style="line-height: 1.6;">${safeExplanation}</div>
+                    <div style="margin-top: 12px; font-size: 0.7rem; opacity: 0.5; text-align: right;">Powered by Gemini Flash-latest</div>
+                `);
+            } else {
+                setSafeHTML(tooltip, '<span style="color: #ef4444;">Analysis currently unavailable.</span>');
+            }
+        });
     });
 }
 
@@ -256,16 +342,26 @@ function updateThemeColors() {
     const theme = detectTheme();
     const rtColor = theme === 'light' ? '#4f46e5' : '#2dd4bf';
     document.documentElement.style.setProperty('--yomu-rt-color', rtColor);
+    
+    if (theme === 'light') {
+        widget.classList.add('yomu-page-light');
+        widget.classList.remove('yomu-page-dark');
+    } else {
+        widget.classList.add('yomu-page-dark');
+        widget.classList.remove('yomu-page-light');
+    }
     console.log(`yōmu! theme: ${theme}`);
 }
 
+let isExtensionEnabled = true;
+
 const observer = new MutationObserver((mutations) => {
+    if (!isExtensionEnabled) return;
     clearTimeout(scanTimeout);
     scanTimeout = setTimeout(() => {
         const hasRelevantChanges = mutations.some(m => {
             if (m.addedNodes.length > 0) return true;
             if (m.type === 'characterData') {
-                // Ignore if the change happened inside a yomu annotation
                 return !m.target.parentElement?.closest('.yomu-annotated');
             }
             return false;
@@ -278,24 +374,73 @@ const observer = new MutationObserver((mutations) => {
     }, 2000);
 });
 
+function stripAnnotations() {
+    const annotatedNodes = document.querySelectorAll('span.yomu-annotated');
+    annotatedNodes.forEach(span => {
+        // yomu-annotated > span.yomu-word > ruby
+        // The original text was just the base text of the ruby.
+        // Easiest is to extract the text from the ruby, ignoring rt.
+        const rubyTags = span.querySelectorAll('ruby');
+        if (rubyTags.length > 0) {
+            let originalText = '';
+            span.childNodes.forEach(child => {
+                if (child.tagName && child.tagName.toLowerCase() === 'span' && child.classList.contains('yomu-word')) {
+                    const ruby = child.querySelector('ruby');
+                    if (ruby) {
+                        // Get base text by cloning and removing rt
+                        const clone = ruby.cloneNode(true);
+                        const rt = clone.querySelector('rt');
+                        if (rt) rt.remove();
+                        originalText += clone.textContent;
+                    }
+                } else {
+                    originalText += child.textContent;
+                }
+            });
+            const textNode = document.createTextNode(originalText);
+            span.parentNode.replaceChild(textNode, span);
+        }
+    });
+    
+    widget.style.display = 'none';
+    widgetState = 'hidden';
+    widget.className = '';
+    document.body.classList.remove('yomu-active-annotations');
+}
+
+chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
+    if (request.action === 'toggle_yomu') {
+        isExtensionEnabled = request.enabled;
+        if (isExtensionEnabled) {
+            scanPage();
+        } else {
+            stripAnnotations();
+        }
+    }
+});
+
 window.addEventListener('load', () => {
-    setTimeout(() => {
-        updateThemeColors();
-        scanPage();
+    chrome.storage.sync.get({ yomuEnabled: true }, (result) => {
+        isExtensionEnabled = result.yomuEnabled;
         
-        // Watch for structure changes AND text content changes
-        observer.observe(document.body, { 
-            childList: true, 
-            subtree: true, 
-            characterData: true 
-        });
-        
-        // Watch for theme toggles
-        const themeObserver = new MutationObserver(updateThemeColors);
-        themeObserver.observe(document.body, { 
-            attributes: true, 
-            attributeFilter: ['class', 'style'] 
-        });
-    }, 1000);
+        setTimeout(() => {
+            updateThemeColors();
+            if (isExtensionEnabled) {
+                scanPage();
+            }
+            
+            observer.observe(document.body, { 
+                childList: true, 
+                subtree: true, 
+                characterData: true 
+            });
+            
+            const themeObserver = new MutationObserver(updateThemeColors);
+            themeObserver.observe(document.body, { 
+                attributes: true, 
+                attributeFilter: ['class', 'style'] 
+            });
+        }, 1000);
+    });
 });
 
