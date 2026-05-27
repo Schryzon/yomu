@@ -212,7 +212,14 @@ function startProcessing(nodes) {
                         });
 
                         if (node.parentNode) {
-                            node.parentNode.replaceChild(span, node);
+                            const prevSibling = node.previousSibling;
+                            if (prevSibling && prevSibling.nodeType === Node.ELEMENT_NODE && prevSibling.classList.contains('yomu-annotated')) {
+                                node.parentNode.replaceChild(span, prevSibling);
+                            } else {
+                                node.parentNode.insertBefore(span, node);
+                            }
+                            // Hide the original text node using a zero-width space so VDOM keeps reference
+                            node.nodeValue = '\u200B';
                         }
 
                     }
@@ -389,27 +396,26 @@ function stripAnnotations() {
     annotatedNodes.forEach(span => {
         // yomu-annotated > span.yomu-word > ruby
         // The original text was just the base text of the ruby.
-        // Easiest is to extract the text from the ruby, ignoring rt.
-        const rubyTags = span.querySelectorAll('ruby');
-        if (rubyTags.length > 0) {
-            let originalText = '';
-            span.childNodes.forEach(child => {
-                if (child.tagName && child.tagName.toLowerCase() === 'span' && child.classList.contains('yomu-word')) {
-                    const ruby = child.querySelector('ruby');
-                    if (ruby) {
-                        // Get base text by cloning and removing rt
-                        const clone = ruby.cloneNode(true);
-                        const rt = clone.querySelector('rt');
-                        if (rt) rt.remove();
-                        originalText += clone.textContent;
+            // Find the next sibling which should be our hidden TextNode
+            const nextNode = span.nextSibling;
+            if (nextNode && nextNode.nodeType === Node.TEXT_NODE && nextNode.nodeValue === '\u200B') {
+                let originalText = '';
+                span.childNodes.forEach(child => {
+                    if (child.tagName && child.tagName.toLowerCase() === 'span' && child.classList.contains('yomu-word')) {
+                        const ruby = child.querySelector('ruby');
+                        if (ruby) {
+                            const clone = ruby.cloneNode(true);
+                            const rt = clone.querySelector('rt');
+                            if (rt) rt.remove();
+                            originalText += clone.textContent;
+                        }
+                    } else {
+                        originalText += child.textContent;
                     }
-                } else {
-                    originalText += child.textContent;
-                }
-            });
-            const textNode = document.createTextNode(originalText);
-            span.parentNode.replaceChild(textNode, span);
-        }
+                });
+                nextNode.nodeValue = originalText;
+            }
+            span.remove();
     });
     
     widget.style.display = 'none';
