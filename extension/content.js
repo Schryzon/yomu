@@ -169,11 +169,12 @@ function scanPage() {
 
 // 2. Process with Backend
 function startProcessing(nodes) {
-    widgetState = 'progress';
-    widget.className = 'yomu-progress';
-    widget.innerText = 'yōmu!'; // Keep the text for the pulsating gray state
-
-    widget.style.display = 'flex';
+    if (widgetState === 'hidden') {
+        widgetState = 'ready';
+        widget.className = 'yomu-ready';
+        widget.innerText = 'yōmu!';
+        widget.style.display = 'flex';
+    }
 
     console.log(`yōmu! found ${nodes.length} target nodes. Batch processing...`);
 
@@ -218,18 +219,10 @@ function startProcessing(nodes) {
                 }
             });
         }
-
-        setReadyState();
     });
 }
 
 // 3. Activation & Subtlety
-function setReadyState() {
-    widgetState = 'ready';
-    widget.className = 'yomu-ready';
-    widget.innerText = 'yōmu!';
-
-}
 
 function createRipple(x, y) {
     const ripple = document.createElement('div');
