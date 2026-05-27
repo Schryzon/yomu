@@ -19,11 +19,11 @@ $TargetManifest = Join-Path $ScriptDir "manifest.json"
 switch ($Browser.ToLower()) {
     "chrome" {
         $ManifestSource = Join-Path $ScriptDir "manifest.chrome.json"
-        Write-Host " preparando manifest for Chrome..." -ForegroundColor Cyan
+        Write-Host "Preparing manifest for Chrome..." -ForegroundColor Cyan
     }
     "firefox" {
         $ManifestSource = Join-Path $ScriptDir "manifest.firefox.json"
-        Write-Host " preparando manifest for Firefox..." -ForegroundColor Cyan
+        Write-Host "Preparing manifest for Firefox..." -ForegroundColor Cyan
     }
     default {
         Write-Host "❌ Unknown browser: $Browser" -ForegroundColor Red
