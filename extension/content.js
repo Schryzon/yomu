@@ -379,7 +379,27 @@ const observer = new MutationObserver((mutations) => {
         const hasRelevantChanges = mutations.some(m => {
             if (m.addedNodes.length > 0) return true;
             if (m.type === 'characterData') {
-                return !m.target.parentElement?.closest('.yomu-annotated');
+                const targetNode = m.target;
+                
+                // Ignore mutations caused by yomu! itself hiding the text node
+                if (targetNode.nodeValue === '\u200B') {
+                    return false;
+                }
+                
+                // If the SPA updated the text node, remove any adjacent old annotation
+                let removedAnnotation = false;
+                if (targetNode.nextSibling && targetNode.nextSibling.classList?.contains('yomu-annotated')) {
+                    targetNode.nextSibling.remove();
+                    removedAnnotation = true;
+                }
+                if (targetNode.previousSibling && targetNode.previousSibling.classList?.contains('yomu-annotated')) {
+                    targetNode.previousSibling.remove();
+                    removedAnnotation = true;
+                }
+                
+                if (removedAnnotation) return true;
+                
+                return !targetNode.parentElement?.closest('.yomu-annotated');
             }
             return false;
         });
