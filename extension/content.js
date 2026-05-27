@@ -125,7 +125,24 @@ function setSafeAnnotationHTML(element, htmlString) {
 
 // 1. Dynamic Detection
 function scanPage() {
-    const walker = document.createTreeWalker(document.body, NodeFilter.SHOW_TEXT, null, false);
+    const walker = document.createTreeWalker(
+        document.body, 
+        NodeFilter.SHOW_TEXT, 
+        {
+            acceptNode: function(node) {
+                const parent = node.parentNode;
+                if (parent) {
+                    const tag = parent.tagName.toLowerCase();
+                    // Ignore scripts, styles, and already annotated ruby tags
+                    if (tag === 'script' || tag === 'style' || tag === 'noscript' || tag === 'ruby' || tag === 'rt') {
+                        return NodeFilter.FILTER_REJECT;
+                    }
+                }
+                return NodeFilter.FILTER_ACCEPT;
+            }
+        }, 
+        false
+    );
     let node;
     const allTargetNodes = [];
 
@@ -371,7 +388,7 @@ const observer = new MutationObserver((mutations) => {
             console.log("yōmu! scanning procedural content...");
             scanPage();
         }
-    }, 2000);
+    }, 300);
 });
 
 function stripAnnotations() {
