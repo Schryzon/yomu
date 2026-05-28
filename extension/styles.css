@@ -19,8 +19,16 @@
     align-items: center;
     justify-content: center;
     cursor: pointer;
-    font-family: sans-serif;
-    font-weight: bold;
+
+    /* Typography & Reset Isolation */
+    font-family: 'Outfit', system-ui, -apple-system, sans-serif !important;
+    font-size: 15px !important;
+    font-weight: 700 !important;
+    line-height: 1 !important;
+    letter-spacing: normal !important;
+    text-transform: none !important;
+    text-shadow: none !important;
+    box-sizing: border-box !important;
     color: #f8fafc;
 
     transition: all 0.3s ease;
@@ -68,6 +76,12 @@
     border-color: #6366f1;
 }
 
+/* 5. Dragging State with Premium Micro-feedback */
+#yomu-widget.yomu-dragging {
+    opacity: 0.85;
+    transform: scale(0.96);
+    cursor: grabbing !important;
+}
 
 .yomu-active-annotations .yomu-word {
     background: rgba(96, 165, 250, 0.08) !important;

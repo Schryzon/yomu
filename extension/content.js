@@ -13,6 +13,50 @@ tooltip.style.display = 'none';
 document.body.appendChild(widget);
 document.body.appendChild(tooltip);
 
+// Position control & constraints
+function setWidgetPosition(right, bottom) {
+    const margin = 16;
+    const widgetWidth = widget.offsetWidth || 80;
+    const widgetHeight = widget.offsetHeight || 48;
+    
+    const maxRight = window.innerWidth - widgetWidth - margin;
+    const maxBottom = window.innerHeight - widgetHeight - margin;
+
+    const clampedRight = Math.max(margin, Math.min(right, maxRight));
+    const clampedBottom = Math.max(margin, Math.min(bottom, maxBottom));
+
+    widget.style.right = `${clampedRight}px`;
+    widget.style.bottom = `${clampedBottom}px`;
+    widget.style.left = 'auto';
+    widget.style.top = 'auto';
+}
+
+function initWidgetPosition() {
+    chrome.storage.sync.get(['widgetRight', 'widgetBottom'], (result) => {
+        const right = result.widgetRight;
+        const bottom = result.widgetBottom;
+        if (right !== undefined && bottom !== undefined) {
+            setWidgetPosition(parseInt(right, 10), parseInt(bottom, 10));
+        } else {
+            // Domain-specific defaults to avoid overlapping bottom bar controls
+            const host = window.location.hostname;
+            if (host.includes('music.youtube.com')) {
+                setWidgetPosition(24, 96);
+            } else {
+                setWidgetPosition(24, 24);
+            }
+        }
+    });
+}
+
+initWidgetPosition();
+
+window.addEventListener('resize', () => {
+    const style = window.getComputedStyle(widget);
+    const right = parseInt(style.right, 10) || 24;
+    const bottom = parseInt(style.bottom, 10) || 24;
+    setWidgetPosition(right, bottom);
+});
 
 // Broad Regex for any alphabetic character from any target script (u flag required)
 // Uses modern Unicode Property Escapes to completely and robustly match standard & extended blocks
@@ -247,7 +291,72 @@ function createRipple(x, y) {
     }, 800);
 }
 
+let isDragging = false;
+let blockClick = false;
+let startX, startY;
+let startRight, startBottom;
+
+widget.addEventListener('mousedown', (e) => {
+    if (e.button !== 0) return; // Left click only
+    
+    isDragging = false;
+    startX = e.clientX;
+    startY = e.clientY;
+    
+    const style = window.getComputedStyle(widget);
+    startRight = parseInt(style.right, 10) || 24;
+    startBottom = parseInt(style.bottom, 10) || 24;
+    
+    widget.style.transition = 'none';
+    
+    document.addEventListener('mousemove', onMouseMove);
+    document.addEventListener('mouseup', onMouseUp);
+});
+
+function onMouseMove(e) {
+    const deltaX = startX - e.clientX;
+    const deltaY = startY - e.clientY;
+    
+    if (!isDragging && (Math.abs(deltaX) > 5 || Math.abs(deltaY) > 5)) {
+        isDragging = true;
+        widget.classList.add('yomu-dragging');
+    }
+    
+    if (isDragging) {
+        setWidgetPosition(startRight + deltaX, startBottom + deltaY);
+    }
+}
+
+function onMouseUp(e) {
+    document.removeEventListener('mousemove', onMouseMove);
+    document.removeEventListener('mouseup', onMouseUp);
+    
+    setTimeout(() => {
+        widget.style.transition = 'all 0.3s ease';
+    }, 50);
+    
+    widget.classList.remove('yomu-dragging');
+    
+    if (isDragging) {
+        blockClick = true;
+        setTimeout(() => {
+            blockClick = false;
+        }, 50);
+        
+        const style = window.getComputedStyle(widget);
+        const finalRight = parseInt(style.right, 10) || 24;
+        const finalBottom = parseInt(style.bottom, 10) || 24;
+        
+        chrome.storage.sync.set({
+            widgetRight: finalRight,
+            widgetBottom: finalBottom
+        });
+    }
+}
+
 widget.addEventListener('click', (e) => {
+    if (blockClick) return;
+
     if (widgetState === 'ready') {
         // Activate
         widgetState = 'active';
