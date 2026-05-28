@@ -1,0 +1,18 @@
+{
+  "name": "yōmu! (ヨォム)",
+  "short_name": "yōmu!",
+  "description": "Linguistic augmentation layer for the web. Dynamically injects pronunciation guides and grammar breakdowns.",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#020617",
+  "theme_color": "#020617",
+  "orientation": "portrait-primary",
+  "icons": [
+    {
+      "src": "/static/logo.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ]
+}

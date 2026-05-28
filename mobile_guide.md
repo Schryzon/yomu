@@ -22,9 +22,9 @@ Firefox is one of the few Android browsers that officially supports a curated li
 For users who cannot install extensions (like Chrome on Android), we provide the **Web Demo as a PWA**.
 
 ### Features enabled:
-- **Offline support**: Basic page loading via service workers (to be implemented).
-- **Home Screen Icon**: Users can "Install" the website, making it feel like a native app for quick translations.
-- **Theming**: Integrated theme-color for a seamless OS experience.
+- **Offline Shell**: Instant interface loading via registered service workers (implemented).
+- **Home Screen Icon**: Native OS installation via PWA manifest configuration (implemented).
+- **Theming**: Integrated theme-color for a seamless standalone OS app experience.
 
 ## 4. Design Considerations
 - **Touch Targets**: All interactive elements in the extension UI should be at least 44x44 pixels.
