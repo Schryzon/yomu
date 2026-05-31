@@ -60,7 +60,7 @@ window.addEventListener('resize', () => {
 
 // Broad Regex for any alphabetic character from any target script (u flag required)
 // Uses modern Unicode Property Escapes to completely and robustly match standard & extended blocks
-// for Japanese (Hiragana/Katakana/Han), Chinese (Han), Arabic, Cyrillic (Russian), Devanagari (Hindi), and Balinese.
+// for Japanese (Hiragana/Katakana/Han), Chinese (Han), Arabic, Cyrillic, Devanagari, and Balinese.
 const TARGET_REGEX = /([\p{scx=Hiragana}\p{scx=Katakana}\p{scx=Han}\p{scx=Arabic}\p{scx=Cyrillic}\p{scx=Devanagari}\p{scx=Balinese}])/u;
 
 // Helper to check if node is inside a ruby tag

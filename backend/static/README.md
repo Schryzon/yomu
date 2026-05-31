@@ -6,7 +6,7 @@ This directory contains the source code for the yōmu! landing page and interact
 - **Interactive Demo**: A real-time sandbox to test linguistic annotations without installing the extension.
 - **Responsive Design**: Mobile-optimized layout with glassmorphic aesthetic.
 - **Ambient Decor**: High-performance background animations featuring drifting multi-script characters.
-- **Language Selection**: Manual or automatic language detection for Japanese, Chinese, Arabic, Russian, and Hindi.
+- **Language Selection**: Manual or automatic language detection for Japanese, Chinese, Arabic, Cyrillic, Devanagari, and Balinese (Aksara Bali).
 
 ## Technical Details
 - **Vanilla Tech**: Built using semantic HTML5, modern CSS variables, and pure JavaScript.

@@ -6,7 +6,7 @@ This directory contains the FastAPI-powered linguistic engine that drives the y≈
 The backend is responsible for:
 - **Japanese Transliteration**: Using `pykakasi` to add Furigana to Kanji.
 - **Chinese Pinyin**: Using `pypinyin` to add tonal guides to Hanzi.
-- **Multi-Script Transliteration**: Handling Arabic, Russian, and Hindi script conversion.
+- **Multi-Script Transliteration**: Handling Arabic, Cyrillic, Devanagari, and Balinese (Aksara Bali) script conversion.
 - **Deep Analysis**: Integrating with **Gemini Flash-latest** to provide grammar and contextual meaning breakdowns.
 - **Error Monitoring**: Integrated with Discord Webhooks for real-time developer alerts on API failures or rate limits.
 

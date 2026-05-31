@@ -65,13 +65,16 @@ def setup_ai():
     global kks
     kks = pykakasi.kakasi()
 
-# Arabic Transliteration — Tashkeel-aware with emphatic consonant distinction
+# Arabic Transliteration — Tashkeel-aware with emphatic consonant distinction and Persian/Urdu support
 AR_CONSONANTS = {
     'ب': 'b', 'ت': 't', 'ث': 'th', 'ج': 'j', 'ح': 'ḥ', 'خ': 'kh',
     'د': 'd', 'ذ': 'dh', 'ر': 'r', 'ز': 'z', 'س': 's', 'ش': 'sh',
     'ص': 'ṣ', 'ض': 'ḍ', 'ط': 'ṭ', 'ظ': 'ẓ', 'ع': "'", 'غ': 'gh',
     'ف': 'f', 'ق': 'q', 'ك': 'k', 'ل': 'l', 'م': 'm', 'ن': 'n',
     'ه': 'h', 'و': 'w', 'ي': 'y',
+    # Persian, Urdu, Pashto, Kurdish extensions
+    'پ': 'p', 'چ': 'ch', 'ژ': 'zh', 'گ': 'g',
+    'ٹ': 'ṭ', 'ڈ': 'ḍ', 'ڑ': 'ṛ', 'ں': 'n', 'ھ': 'h', 'ے': 'e', 'ی': 'y',
 }
 
 AR_SPECIAL = {
@@ -88,12 +91,12 @@ AR_TASHKEEL = {
     '\u064E': 'a',    # fatha
     '\u064F': 'u',    # damma
     '\u0650': 'i',    # kasra
-    '\u0651': None,   # shadda (doubles preceding consonant — handled in processor)
-    '\u0652': '',     # sukun (no vowel)
+    '\u0651': None,   # shadda (handled specially)
+    '\u0652': '',     # sukun
     '\u064B': 'an',   # tanwin fath
     '\u064C': 'un',   # tanwin damm
     '\u064D': 'in',   # tanwin kasr
-    '\u0670': 'ā',    # dagger alef (superscript alef)
+    '\u0670': 'ā',    # dagger alef
 }
 
 # Sun letters — al- assimilates before these
@@ -172,9 +175,9 @@ async def get_real_annotation(text: str, target_lang: str = "auto") -> str:
         elif target_lang == 'ar':
             return process_arabic_text(text)
         elif target_lang == 'ru':
-            return process_russian_text(text)
+            return process_cyrillic_text(text)
         elif target_lang == 'hi':
-            return process_hindi_text(text)
+            return process_devanagari_text(text)
         elif target_lang == 'ban':
             return process_balinese_text(text)
         
@@ -317,7 +320,7 @@ def process_chinese_text(text: str) -> str:
     return annotated_html
 
 
-# Russian Transliteration — Phonetic/learner-friendly style
+# Slavic Cyrillic Transliteration — Comprehensive coverage of all Cyrillic letters
 RU_MAP = {
     'а': 'a', 'б': 'b', 'в': 'v', 'г': 'g', 'д': 'd', 'е': 'ye', 'ё': 'yo', 'ж': 'zh',
     'з': 'z', 'и': 'i', 'й': 'y', 'к': 'k', 'л': 'l', 'м': 'm', 'н': 'n', 'о': 'o',
@@ -326,17 +329,27 @@ RU_MAP = {
     'А': 'A', 'Б': 'B', 'В': 'V', 'Г': 'G', 'Д': 'D', 'Е': 'Ye', 'Ё': 'Yo', 'Ж': 'Zh',
     'З': 'Z', 'И': 'I', 'Й': 'Y', 'К': 'K', 'Л': 'L', 'М': 'M', 'Н': 'N', 'О': 'O',
     'П': 'P', 'Р': 'R', 'С': 'S', 'Т': 'T', 'У': 'U', 'Ф': 'F', 'Х': 'Kh', 'Ц': 'Ts',
-    'Ч': 'Ch', 'Ш': 'Sh', 'Щ': 'Shch', 'Ъ': '', 'Ы': 'Y', 'Ь': '', 'Э': 'E', 'Ю': 'Yu', 'Я': 'Ya'
+    'Ч': 'Ch', 'Ш': 'Sh', 'Щ': 'Shch', 'Ъ': '', 'Ы': 'Y', 'Ь': '', 'Э': 'E', 'Ю': 'Yu', 'Я': 'Ya',
+    # Ukrainian & Belarusian letters
+    'ґ': 'g', 'Ґ': 'G', 'є': 'ye', 'Є': 'Ye', 'і': 'i', 'І': 'I', 'ї': 'yi', 'Ї': 'Yi',
+    'ў': 'w', 'Ў': 'W',
+    # Serbian & Macedonian letters
+    'ђ': 'dj', 'Ђ': 'Dj', 'ј': 'j', 'Ј': 'J', 'љ': 'lj', 'Љ': 'Lj', 'њ': 'nj', 'Њ': 'Nj',
+    'ћ': 'ch', 'Ћ': 'Ch', 'џ': 'dzh', 'Џ': 'Dzh', 'ѕ': 'dz', 'Ѕ': 'Dz',
+    # Old Church Slavonic & Archaic letters
+    'ѣ': 'e', 'Ѣ': 'E', 'ѳ': 'f', 'Ѳ': 'F', 'ѵ': 'i', 'Ѵ': 'I',
 }
 
-# Vowels and soft/hard signs that trigger е → ye (otherwise е → e after consonants)
-RU_VOWELS = set('аеёиоуыэюяАЕЁИОУЫЭЮЯ')
+# Vowels and soft/hard signs that trigger е/Е → ye (otherwise е/Е → e after consonants)
+RU_VOWELS = set('аеёиоуыэюяєіїАЕЁИОУЫЭЮЯЄІЇ')
 RU_SIGNS = set('ъьЪЬ')
 
-# Hindi/Devanagari Transliteration — Structured for halant/virama awareness
+# Devanagari Transliteration — Fully comprehensive for Sanskrit, Hindi, Marathi, and Konkani
 HI_VOWELS = {
     'अ': 'a', 'आ': 'aa', 'इ': 'i', 'ई': 'ee', 'उ': 'u', 'ऊ': 'oo',
-    'ऋ': 'ri', 'ए': 'e', 'ऐ': 'ai', 'ओ': 'o', 'औ': 'au', 'ऑ': 'o',
+    'ऋ': 'ri', 'ॠ': 'ree', 'ऌ': 'lri', 'ॡ': 'lree',
+    'ए': 'e', 'ऐ': 'ai', 'ओ': 'o', 'औ': 'au',
+    'ॲ': 'ae', 'ऑ': 'o', 'ऎ': 'e', 'ऒ': 'o',
 }
 
 HI_CONSONANTS = {
@@ -347,6 +360,8 @@ HI_CONSONANTS = {
     'प': 'p', 'फ': 'ph', 'ब': 'b', 'भ': 'bh', 'म': 'm',
     'य': 'y', 'र': 'r', 'ल': 'l', 'व': 'v',
     'श': 'sh', 'ष': 'sh', 'स': 's', 'ह': 'h',
+    # Marathi/Sanskrit/Dravidian extensions
+    'ळ': 'ḷ', 'ऴ': 'zh', 'ऩ': 'n', 'ऱ': 'ṟ',
 }
 
 # Nukta consonants (borrowed phonemes from Persian/Arabic)
@@ -355,20 +370,22 @@ HI_NUKTA = {
     'ड़': 'ṛ', 'ढ़': 'ṛh', 'फ़': 'f',
 }
 
-# Vowel signs (matras) — replace the inherent 'a' of a consonant
+# Vowel signs (matras)
 HI_MATRAS = {
     'ा': 'aa', 'ि': 'i', 'ी': 'ee', 'ु': 'u', 'ू': 'oo',
-    'ृ': 'ri', 'े': 'e', 'ै': 'ai', 'ो': 'o', 'ौ': 'au', 'ॉ': 'o',
+    'ृ': 'ri', 'ॄ': 'ree', 'ॢ': 'lri', 'ॣ': 'lree',
+    'े': 'e', 'ै': 'ai', 'ो': 'o', 'ौ': 'au',
+    'ॅ': 'ae', 'ॉ': 'o', 'ॆ': 'e', 'ॊ': 'o',
 }
 
 # Modifiers (anusvara, chandrabindu, visarga)
 HI_MODIFIERS = {
-    'ं': 'n',   # anusvara — nasal
-    'ँ': 'n',   # chandrabindu — nasalization
+    'ं': 'n',   # anusvara
+    'ँ': 'n',   # chandrabindu
     'ः': 'h',   # visarga
 }
 
-HI_HALANT = '्'       # virama — suppresses inherent vowel
+HI_HALANT = '्'       # virama
 HI_NUKTA_MARK = '़'   # nukta diacritic mark
 
 # Balinese Transliteration — Complete with independent vowels and pangangge
@@ -419,175 +436,238 @@ BALI_MODIFIERS = {
 
 BALI_ADEG_ADEG = '\u1B44'  # vowel killer
 
-def process_hindi_text(text: str) -> str:
+def process_devanagari_text(text: str) -> str:
     """
-    Hindi/Devanagari transliteration with halant (virama) and schwa deletion.
+    Devanagari transliteration with halant (virama) and schwa deletion.
     Handles consonant clusters, nukta consonants, matras, and modifiers.
     """
     annotated_html = ""
-    hindi_pattern = re.compile(r'([\u0900-\u097F]+)')
-    parts = hindi_pattern.split(text)
+    devanagari_pattern = re.compile(r'([\u0900-\u097F]+)')
+    parts = devanagari_pattern.split(text)
     
     for part in parts:
         if not part:
             continue
-        if hindi_pattern.match(part):
-            trans = _transliterate_hindi_word(part)
+        if devanagari_pattern.match(part):
+            trans = _transliterate_devanagari_word(part)
             annotated_html += f'<span class="yomu-word" data-word="{part}"><ruby>{part}<rt>{trans}</rt></ruby></span>'
         else:
             annotated_html += part
             
     return annotated_html
 
-def _transliterate_hindi_word(word: str) -> str:
+def _transliterate_devanagari_word(word: str) -> str:
     """
-    Transliterate a single Hindi word with halant/schwa handling.
-    Uses a placeholder for inherent 'a' so we can apply word-final schwa deletion.
+    Transliterate a single Devanagari word using a phonemic unit parser
+    and applying the standard medial and final schwa deletion rules.
     """
-    # \x00 is a placeholder for the inherent schwa — deleted at word-end, becomes 'a' elsewhere
-    SCHWA = '\x00'
-    result = []
+    if not word:
+        return word
+
+    units = []
     i = 0
-    
     while i < len(word):
         char = word[i]
         next_char = word[i + 1] if i + 1 < len(word) else ''
         
-        # Nukta combination: consonant + nukta mark (e.g. क + ़ = क़)
+        # 1. Nukta combination
         if char in HI_CONSONANTS and next_char == HI_NUKTA_MARK:
             nukta_combo = char + next_char
             consonant = HI_NUKTA.get(nukta_combo, HI_CONSONANTS[char])
             i += 2
-            
-            # What follows the nukta consonant?
-            if i < len(word) and word[i] == HI_HALANT:
-                result.append(consonant)
-                i += 1
-            elif i < len(word) and word[i] in HI_MATRAS:
-                result.append(consonant + HI_MATRAS[word[i]])
-                i += 1
-            else:
-                result.append(consonant + SCHWA)
-            
-            # Check for trailing modifier (anusvara, chandrabindu, visarga)
-            if i < len(word) and word[i] in HI_MODIFIERS:
-                result.append(HI_MODIFIERS[word[i]])
-                i += 1
-            continue
-        
-        # Independent vowels (word-initial or after another vowel)
-        if char in HI_VOWELS:
-            result.append(HI_VOWELS[char])
-            i += 1
-            if i < len(word) and word[i] in HI_MODIFIERS:
-                result.append(HI_MODIFIERS[word[i]])
-                i += 1
-            continue
-        
-        # Regular consonants
-        if char in HI_CONSONANTS:
+        elif char in HI_CONSONANTS:
             consonant = HI_CONSONANTS[char]
             i += 1
-            
-            if i < len(word) and word[i] == HI_HALANT:
-                # Halant: suppress inherent vowel → bare consonant
-                result.append(consonant)
-                i += 1
-            elif i < len(word) and word[i] in HI_MATRAS:
-                # Matra replaces inherent 'a'
-                result.append(consonant + HI_MATRAS[word[i]])
-                i += 1
-            else:
-                # Inherent 'a' — subject to schwa deletion
-                result.append(consonant + SCHWA)
-            
+        elif char in HI_VOWELS:
+            # Independent vowel
+            units.append({
+                'type': 'V',
+                'vowel': HI_VOWELS[char],
+                'modifier': ''
+            })
+            i += 1
             # Check for trailing modifier
             if i < len(word) and word[i] in HI_MODIFIERS:
-                result.append(HI_MODIFIERS[word[i]])
+                units[-1]['modifier'] = HI_MODIFIERS[word[i]]
                 i += 1
             continue
-        
-        # Standalone matras (rare edge case)
-        if char in HI_MATRAS:
-            result.append(HI_MATRAS[char])
+        elif char in HI_MODIFIERS:
+            # Standalone modifier
+            units.append({
+                'type': 'M',
+                'modifier': HI_MODIFIERS[char]
+            })
             i += 1
             continue
-        
-        # Standalone modifiers
-        if char in HI_MODIFIERS:
-            result.append(HI_MODIFIERS[char])
+        else:
+            # Pass through other symbols
+            units.append({
+                'type': 'OTHER',
+                'char': char
+            })
             i += 1
             continue
+            
+        # We parsed a consonant, check what follows it
+        vowel = 'a' # default inherent schwa
+        has_halant = False
         
-        # Halant without preceding consonant (skip)
-        if char == HI_HALANT or char == HI_NUKTA_MARK:
+        if i < len(word) and word[i] == HI_HALANT:
+            vowel = '' # killed by virama
+            has_halant = True
             i += 1
-            continue
-        
-        # Everything else (digits, punctuation) — pass through
-        result.append(char)
-        i += 1
-    
-    # Join and apply schwa deletion
-    text = ''.join(result)
-    
-    # Word-final schwa deletion: remove trailing placeholder
-    if text.endswith(SCHWA):
-        text = text[:-1]
-    
-    # Replace remaining schwa placeholders with 'a'
-    text = text.replace(SCHWA, 'a')
-    
-    return text
+        elif i < len(word) and word[i] in HI_MATRAS:
+            vowel = HI_MATRAS[word[i]]
+            i += 1
+            
+        modifier = ''
+        if i < len(word) and word[i] in HI_MODIFIERS:
+            modifier = HI_MODIFIERS[word[i]]
+            i += 1
+            
+        units.append({
+            'type': 'CV',
+            'consonant': consonant,
+            'vowel': vowel,
+            'has_halant': has_halant,
+            'modifier': modifier
+        })
 
-def process_russian_text(text: str) -> str:
+    # Pass 2: Apply schwa deletion
+    # Count vocalic syllables in the word to check deletion viability
+    vocalic_indices = [idx for idx, u in enumerate(units) if u['type'] == 'V' or (u['type'] == 'CV' and u['vowel'] != '')]
+    
+    # We will keep track of active vowels at each index
+    active_vowel = [False] * len(units)
+    for idx in vocalic_indices:
+        active_vowel[idx] = True
+
+    # 1. Word-final schwa deletion (if there's more than one vocalic unit)
+    if len(vocalic_indices) > 1:
+        last_voc_idx = vocalic_indices[-1]
+        last_unit = units[last_voc_idx]
+        if last_unit['type'] == 'CV' and last_unit['vowel'] == 'a' and not last_unit['has_halant']:
+            # Exception: keep final 'a' if last consonant is 'y' preceded by a halant unit (e.g. 'surya')
+            is_surya_exception = False
+            if last_unit['consonant'] == 'y' and last_voc_idx > 0:
+                prev_unit = units[last_voc_idx - 1]
+                if prev_unit['type'] == 'CV' and prev_unit['has_halant']:
+                    is_surya_exception = True
+            
+            if not is_surya_exception:
+                active_vowel[last_voc_idx] = False
+
+    # 2. Medial schwa deletion (ə → ∅ / VC_CV)
+    for k in range(1, len(units) - 1):
+        unit = units[k]
+        if unit['type'] == 'CV' and unit['vowel'] == 'a' and not unit['has_halant'] and active_vowel[k]:
+            # The preceding and succeeding units must both have active vowels
+            if active_vowel[k - 1] and active_vowel[k + 1]:
+                active_vowel[k] = False
+
+    # Pass 3: Assemble transliteration
+    result = []
+    for idx, u in enumerate(units):
+        if u['type'] == 'V':
+            result.append(u['vowel'])
+            if u['modifier']:
+                result.append(u['modifier'])
+        elif u['type'] == 'CV':
+            result.append(u['consonant'])
+            if active_vowel[idx]:
+                result.append(u['vowel'])
+            if u['modifier']:
+                result.append(u['modifier'])
+        elif u['type'] == 'OTHER':
+            result.append(u['char'])
+            
+    return ''.join(result)
+
+def process_cyrillic_text(text: str) -> str:
     """
-    Phonetic Russian transliteration (learner-friendly).
+    Phonetic Cyrillic transliteration (learner-friendly).
     Context-aware: е→ye word-initially and after vowels/signs, е→e after consonants.
     """
     annotated_html = ""
-    russian_pattern = re.compile(r'([\u0400-\u04FF\u0500-\u052F\u2DE0-\u2DFF\uA640-\uA69F\u1C80-\u1C8F]+)')
-    parts = russian_pattern.split(text)
+    cyrillic_pattern = re.compile(r'([\u0400-\u04FF\u0500-\u052F\u2DE0-\u2DFF\uA640-\uA69F\u1C80-\u1C8F]+)')
+    parts = cyrillic_pattern.split(text)
     
     for part in parts:
         if not part:
             continue
-        if russian_pattern.match(part):
-            trans = _transliterate_russian_word(part)
+        if cyrillic_pattern.match(part):
+            trans = _transliterate_cyrillic_word(part)
             annotated_html += f'<span class="yomu-word" data-word="{part}"><ruby>{part}<rt>{trans}</rt></ruby></span>'
         else:
             annotated_html += part
             
     return annotated_html
 
-def _transliterate_russian_word(word: str) -> str:
+def _transliterate_cyrillic_word(word: str) -> str:
     """
-    Transliterate a single Russian word with context-aware е/Е handling.
-    After consonants: е → e. Word-initial or after vowels/ъ/ь: е → ye.
+    Transliterate a single Cyrillic word with context-aware е/Е handling
+    and correct uppercase casing propagation for iotated vowels.
     """
     result = []
+    
+    # Helper to check if the word is largely uppercase to keep uppercase consistency
+    is_word_uppercase = word.isupper()
+    
+    # Smart Ukrainian context detection:
+    # If the word contains Ukrainian-specific letters (і, І, ї, Ї, є, Є, ґ, Ґ),
+    # we transliterate the Cyrillic 'и'/'И' as Ukrainian 'y'/'Y' instead of Russian 'i'/'I'.
+    is_ukrainian = any(c in "іїєґІЇЄҐ" for c in word)
     
     for i, char in enumerate(word):
         prev_char = word[i - 1] if i > 0 else ''
         
-        # Context-aware е handling
+        # Determine case propagation for iotated vowels (Е, Ё, Ю, Я, Є, Ї)
+        is_uppercase_context = is_word_uppercase or (char.isupper() and i + 1 < len(word) and word[i + 1].isupper())
+        
+        # Ukrainian context 'и' / 'И' handling
+        if is_ukrainian:
+            if char == 'и':
+                result.append('y')
+                continue
+            elif char == 'И':
+                result.append('Y')
+                continue
+        
+        # Context-aware е/Е handling
         if char == 'е':
             if i == 0 or prev_char in RU_VOWELS or prev_char in RU_SIGNS:
                 result.append('ye')
             else:
                 result.append('e')
             continue
-        
-        if char == 'Е':
+        elif char == 'Е':
             if i == 0 or prev_char in RU_VOWELS or prev_char in RU_SIGNS:
-                result.append('Ye')
+                result.append('YE' if is_uppercase_context else 'Ye')
             else:
                 result.append('E')
             continue
+            
+        # Standard iotated vowels casing handling
+        iotated_map = {
+            'ё': 'yo', 'ю': 'yu', 'я': 'ya', 'є': 'ye', 'ї': 'yi',
+            'Ё': 'Yo', 'Ю': 'Yu', 'Я': 'Ya', 'Є': 'Ye', 'Ї': 'Yi'
+        }
         
+        if char in iotated_map:
+            trans = iotated_map[char]
+            # Ukrainian 'ї' / 'Ї' middle-of-word rule
+            if is_ukrainian and char in ['ї', 'Ї'] and i > 0:
+                trans = 'i' if char == 'ї' else 'I'
+                
+            if char.isupper():
+                result.append(trans.upper() if is_uppercase_context else trans)
+            else:
+                result.append(trans)
+            continue
+            
         # Standard mapping
         result.append(RU_MAP.get(char, char))
-    
+        
     return ''.join(result)
 
 def process_arabic_text(text: str) -> str:
@@ -612,42 +692,135 @@ def process_arabic_text(text: str) -> str:
 
 def _transliterate_arabic_word(word: str) -> str:
     """
-    Transliterate a single Arabic word with tashkeel awareness.
-    Processes character + diacritic pairs, handles shadda doubling, tanwin, and al- assimilation.
+    Transliterate a single Arabic/Persian/Urdu word with tashkeel awareness and compound prefix parsing.
     """
-    # 1. Handle al- (definite article) assimilation at the start of the word
-    prefix = ""
-    if word.startswith("ال") or word.startswith("ٱل") or word.startswith("أل"):
-        # Check if the 3rd character is a sun letter (ignoring diacritics temporarily)
-        # Find the first consonant after 'al'
-        idx = 2
+    if not word:
+        return word
+
+    prefix_trans = []
+    i = 0
+
+    # We only parse prefixes if they are followed by a definite article 'ال' (al-) or double lam 'لل' (lil-).
+    # This prevents false positives on root letters (e.g. 'ب' in 'بيت' or 'و' in 'ولد').
+    
+    # Helper to check if a definite article starts at index k
+    def is_article_at(k):
+        if k < len(word):
+            # Check for 'ال' / 'ٱل' / 'أل'
+            if k + 1 < len(word) and word[k] in ['ا', 'ٱ', 'أ'] and word[k+1] == 'ل':
+                return 'al', k + 2
+            # Check for 'لل'
+            if k + 1 < len(word) and word[k] == 'ل' and word[k+1] == 'ل':
+                return 'lil', k + 2
+        return None, k
+
+    # Scan for conjunction 'و' or 'ف'
+    if i < len(word) and word[i] in ['و', 'ف']:
+        conj_char = word[i]
+        idx = i + 1
+        while idx < len(word) and word[idx] in AR_TASHKEEL:
+            idx += 1
+        
+        art_type, next_idx = is_article_at(idx)
+        has_prep_after = False
+        prep_idx = idx
+        if prep_idx < len(word) and word[prep_idx] in ['ب', 'ل']:
+            prep_idx += 1
+            while prep_idx < len(word) and word[prep_idx] in AR_TASHKEEL:
+                prep_idx += 1
+            art_type_after, next_idx_after = is_article_at(prep_idx)
+            if art_type_after:
+                has_prep_after = True
+                
+        if art_type or has_prep_after:
+            prefix_trans.append("wa-" if conj_char == 'و' else "fa-")
+            i = idx
+
+    # Scan for preposition 'ب' or 'ل'
+    if i < len(word) and word[i] in ['ب', 'ل']:
+        prep_char = word[i]
+        idx = i + 1
         while idx < len(word) and word[idx] in AR_TASHKEEL:
             idx += 1
             
+        # If preposition is 'ل' (li-), and next char is 'ل', this is the definite article lam!
+        if prep_char == 'ل' and idx < len(word) and word[idx] == 'ل':
+            prefix_trans.append("li-")
+            i = idx
+        else:
+            art_type, next_idx = is_article_at(idx)
+            if art_type:
+                prefix_trans.append("bi-" if prep_char == 'ب' else "li-")
+                i = idx
+
+    # Scan for definite article 'ال', 'لل', or single lam 'ل' after a preposition
+    is_single_lam_art = (i < len(word) and word[i] == 'ل' and len(prefix_trans) > 0 and prefix_trans[-1] == "li-")
+    art_type, next_idx = is_article_at(i)
+    
+    if art_type == 'al' or is_single_lam_art:
+        idx = next_idx if not is_single_lam_art else i + 1
+        while idx < len(word) and word[idx] in AR_TASHKEEL:
+            idx += 1
         if idx < len(word):
             next_char = word[idx]
             if next_char in AR_SUN_LETTERS:
                 sun_trans = AR_CONSONANTS.get(next_char, next_char)
-                prefix = f"a{sun_trans}-"
-                word = word[idx:] # Skip the 'al' part
+                prefix_trans.append(f"an-" if sun_trans == 'n' else f"a{sun_trans}-")
+                i = idx
             else:
-                prefix = "al-"
-                word = word[idx:]
-    
+                prefix_trans.append("al-")
+                i = next_idx if not is_single_lam_art else i + 1
+        else:
+            prefix_trans.append("al-")
+            i = next_idx if not is_single_lam_art else i + 1
+    elif art_type == 'lil':
+        idx = next_idx
+        while idx < len(word) and word[idx] in AR_TASHKEEL:
+            idx += 1
+        if idx < len(word):
+            next_char = word[idx]
+            if next_char in AR_SUN_LETTERS:
+                sun_trans = AR_CONSONANTS.get(next_char, next_char)
+                prefix_trans.append(f"li-a{sun_trans}-")
+                i = idx
+            else:
+                prefix_trans.append("lil-")
+                i = next_idx
+        else:
+            prefix_trans.append("lil-")
+            i = next_idx
+
     result = []
-    if prefix:
-        result.append(prefix)
-        
-    i = 0
+    if prefix_trans:
+        result.append(''.join(prefix_trans))
+
     while i < len(word):
         char = word[i]
-        
-        # Base consonant or special character
+
+        # Context-aware ta marbuta 'ة': 'h' if preceded by a vowel/fatha, 'ah' if unvocalized
+        if char == 'ة':
+            if result and result[-1] in ['a', 'i', 'u', 'ā', 'ī', 'ū']:
+                result.append('h')
+            else:
+                result.append('ah')
+            i += 1
+            continue
+
+        # Rule-based word-initial alif: 'ا' at start of remaining word transliterates as 'a' (or empty if followed by diacritic)
+        if char == 'ا' and i == 0:
+            if i + 1 < len(word) and word[i + 1] in AR_TASHKEEL:
+                base_trans = ""
+            else:
+                base_trans = "a"
+            i += 1
+            result.append(base_trans)
+            continue
+
         if char in AR_CONSONANTS or char in AR_SPECIAL:
             base_trans = AR_CONSONANTS.get(char, AR_SPECIAL.get(char, char))
             i += 1
-            
-            # Collect following diacritics
+
+            # Collect diacritics
             diacritics = []
             has_shadda = False
             while i < len(word) and word[i] in AR_TASHKEEL:
@@ -656,48 +829,54 @@ def _transliterate_arabic_word(word: str) -> str:
                 else:
                     diacritics.append(word[i])
                 i += 1
-                
-            # Apply shadda (doubling)
+
+            # Heuristic for unvocalized long vowels (ya -> ī, waw -> ū)
+            if not diacritics and not has_shadda and result:
+                last_segment = result[-1]
+                # Check if the last character in the result is a consonant
+                if last_segment and last_segment[-1].lower() not in set("aeiouāīū'"):
+                    if char == 'ي':
+                        base_trans = 'ī'
+                    elif char == 'و':
+                        base_trans = 'ū'
+
             if has_shadda:
                 result.append(base_trans + base_trans)
             else:
                 result.append(base_trans)
-                
-            # Apply vowels
+
             for d in diacritics:
                 v = AR_TASHKEEL.get(d)
                 if v:
                     result.append(v)
             continue
-            
-        # Standalone diacritic
+
         if char in AR_TASHKEEL:
             v = AR_TASHKEEL.get(char)
             if v:
                 result.append(v)
             i += 1
             continue
-            
-        # Unrecognized character
+
         result.append(char)
         i += 1
-        
+
     text = ''.join(result)
-    
-    # Fix short + long vowel combinations and tanwin orthography
+
+    # Fix vocalization sequences and endings
     text = text.replace('aā', 'ā')
-    text = text.replace('anā', 'an') # alif after tanwin fatha
-    text = text.replace('iy', 'ī')  # kasra + ya
-    text = text.replace('uw', 'ū')  # damma + waw
-    
-    # Deduplicate sun letter if explicitly geminated with shadda (e.g. ash-shshams -> ash-shams)
+    text = text.replace('anā', 'an')
+    text = text.replace('iy', 'ī')
+    text = text.replace('uw', 'ū')
+
+    # Deduplicate sun letters under shadda assimilation
     for char in AR_SUN_LETTERS:
         if char in AR_CONSONANTS:
             trans = AR_CONSONANTS[char]
             bad_seq = f"a{trans}-{trans}{trans}"
             good_seq = f"a{trans}-{trans}"
             text = text.replace(bad_seq, good_seq)
-    
+
     return text
 
 def process_balinese_text(text: str) -> str:
@@ -803,7 +982,7 @@ async def explain_text(text: str, context: str = "", native_lang: str = "English
     Surrounding Context (use this to determine the exact meaning and provide previous/next sentence nuance):
     "{context}"
     
-    IMPORTANT: First, identify the language of the target word/phrase. This could be ANY language — Japanese, Chinese, Arabic, Russian, Hindi, Balinese, Korean, Thai, Vietnamese, Indonesian, or any other. Adjust your analysis accordingly.
+    IMPORTANT: First, identify the language of the target word/phrase. This could be ANY language — Japanese, Chinese, Arabic, Cyrillic, Devanagari, Balinese, Korean, Thai, Vietnamese, Indonesian, or any other. Adjust your analysis accordingly.
     
     Provide a direct, highly concise linguistic analysis for a language learner. 
     ALL explanations, meanings, synonyms, and antonyms MUST be provided in the user's native language: {native_lang}.
@@ -812,7 +991,7 @@ async def explain_text(text: str, context: str = "", native_lang: str = "English
     Format the output EXACTLY like this:
     <strong>Language:</strong> [Detected language of the word/phrase]<br>
     <strong>Meaning:</strong> [Direct {native_lang} meaning, using the surrounding context for accuracy]<br>
-    <strong>Reading:</strong> [Pronunciation/reading in the standard romanization system for this language, e.g. romaji for Japanese, pinyin for Chinese, transliteration for Arabic/Russian/Hindi, etc.]<br>
+    <strong>Reading:</strong> [Pronunciation/reading in the standard romanization system for this language, e.g. romaji for Japanese, pinyin for Chinese, transliteration for Arabic/Cyrillic/Devanagari, etc.]<br>
     <strong>Grammar:</strong> [Grammar/parts of speech breakdown relative to the context, in {native_lang}]<br>
     <strong>Synonyms:</strong> [2-3 relevant synonyms in original script, with parenthesized reading/pronunciation and rough {native_lang} meaning]<br>
     <strong>Antonyms:</strong> [1-2 relevant antonyms in original script, with parenthesized reading/pronunciation and rough {native_lang} meaning, if applicable]<br>

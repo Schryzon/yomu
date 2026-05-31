@@ -8,12 +8,18 @@
 [![Python 3.12](https://img.shields.io/badge/Python-3.12-blue.svg)](https://www.python.org/downloads/release/python-3120/)
 [![FastAPI](https://img.shields.io/badge/FastAPI-0.104.1-009688.svg)](https://fastapi.tiangolo.com/)
 [![Cloud Run](https://img.shields.io/badge/Cloud%20Run-Deployed-blue.svg)](https://cloud.google.com/run)
+[![Sponsor](https://img.shields.io/badge/Sponsor-Schryzon-pink.svg?style=flat&logo=github-sponsors)](https://github.com/sponsors/Schryzon)
 
 **Reading foreign scripts, made effortless.**
 
-yōmu! is a real-time linguistic augmentation layer for the web. It dynamically injects pronunciation guides (Furigana, Pinyin, or Transliteration) into any website, allowing you to read Japanese, Chinese, and Arabic without breaking your flow.
+yōmu! is a real-time linguistic augmentation layer for the web. It dynamically injects pronunciation guides (Furigana, Pinyin, or Transliteration) into any website, allowing you to read Japanese, Chinese, Arabic, Cyrillic, Devanagari, and Balinese (Aksara Bali) without breaking your flow.
 
 [**Try the Web Demo**](https://yomu-447937177163.asia-southeast2.run.app/) | [**Install Extension**](#installation) | [**Contributing**](CONTRIBUTING.md)
+
+---
+
+### 🎥 Watch the Promo Video
+[![yōmu! Promo Video](https://img.youtube.com/vi/NY2R7V5c_kU/maxresdefault.jpg)](https://www.youtube.com/watch?v=NY2R7V5c_kU)
 
 ---
 
@@ -33,8 +39,9 @@ yōmu! is a real-time linguistic augmentation layer for the web. It dynamically 
 - **Japanese (Furigana)**: Automatically adds Hiragana reading aids above Kanji using `pykakasi`.
 - **Chinese (Pinyin)**: Injects tonal Pinyin above Hanzi characters via `pypinyin`.
 - **Arabic (Transliteration)**: Provides lightweight Latin transliteration for Arabic script.
-- **Russian (Transliteration)**: Adds phonetic Latin guides above Cyrillic text.
-- **Hindi (Transliteration)**: Provides phonetic guides for Devanagari script.
+- **Cyrillic (Transliteration)**: Adds phonetic Latin guides above Cyrillic text.
+- **Devanagari (Transliteration)**: Provides phonetic guides for Devanagari script.
+- **Balinese (Aksara Bali)**: Provides phonetic guides for Balinese script.
 
 - **Deep Analysis in Native Language**: Set your native language (English, Indonesian, Spanish, French, etc.) and get grammar/vocabulary breakdowns explained directly in your mother tongue using Gemini Flash.
 - **Smart Detection**: Automatically identifies the language of the page or specific text blocks.
@@ -61,7 +68,7 @@ yōmu! is a real-time linguistic augmentation layer for the web. It dynamically 
 
 ### 🌐 Web Demo
 1.  Navigate to the [yōmu! Web Demo](https://yomu-447937177163.asia-southeast2.run.app/).
-2.  Type or paste text in the input box (Japanese, Chinese, Arabic, Russian, or Hindi).
+2.  Type or paste text in the input box (Japanese, Chinese, Arabic, Cyrillic, Devanagari, or Balinese Aksara Bali).
 3.  The annotated text will appear instantly in the output box.
 
 ### 🧩 Browser Extension
@@ -98,6 +105,11 @@ yōmu! is built with a decoupled architecture for maximum flexibility:
 ## Installation
 
 ### 1. Browser Extension
+You can install **yōmu!** directly from the official extension stores:
+- [**Chrome Web Store**](https://chromewebstore.google.com/detail/y%C5%8Dmu/gcihehnachakmhljbpmpihfdfhhjapdh)
+- [**Firefox Add-ons**](https://addons.mozilla.org/en-US/firefox/addon/y%C5%8Dmu/)
+
+Alternatively, for manual developer installation:
 **Chrome / Edge / Brave:**
 1. Clone this repository.
 2. Go to `chrome://extensions/`.
